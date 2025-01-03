@@ -2,9 +2,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "raylib.h"
 #include "global.h"
 #include "screens/game.h"
-#include "screens/options.h"
 
 int main () {
 	// Tell the window to use vysnc and work on high DPI displays
@@ -24,10 +24,7 @@ int main () {
 	while (!WindowShouldClose()) {
 		switch (curr_screen) {
 			case GAME:
-				curr_screen = game_screen(defaultFont);
-				break;
-			case OPTIONS:
-				curr_screen = options_screen(defaultFont);
+				curr_screen = GameScreen(defaultFont);
 				break;
 			default:
 				curr_screen = CLOSE_GAME;
