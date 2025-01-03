@@ -54,7 +54,7 @@ struct Plinko_Ball {
 };
 
 int get_drop_location() {
-	return randomInRange(0, DROP_RANGE) + ((GetScreenWidth()-DROP_RANGE)/2);
+	return RandomInRange(0, DROP_RANGE) + ((GetScreenWidth()-DROP_RANGE)/2);
 }
 
 void generate_ball(PBall **tail) {
@@ -83,7 +83,7 @@ void remove_ball(PBall **ball, PBall **tail) {
 	free(temp);
 }
 
-enum Screen game_screen(Font defaultFont) {
+enum Screen GameScreen(Font defaultFont) {
 	// Init game screen
 	enum Screen next_screen = CLOSE_GAME;
 	font = defaultFont;

@@ -1,6 +1,6 @@
 #ifndef GAME_H
 #define GAME_H
 
-enum Screen game_screen(Font defaultFont);
+enum Screen GameScreen(Font defaultFont);
 
 #endif

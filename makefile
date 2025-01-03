@@ -2,7 +2,7 @@ win-args = -Wl,-Bstatic -Iinclude/win/ -Linclude/win/ -lraylib -lpthread -Wl,-Bd
 
 ubuntu-args = -Wl,-Bstatic -Iinclude/linux/ -Linclude/linux/ -lraylib -Wl,-Bdynamic -lGL -lm -lpthread -lrt -lX11
 
-screens = src/screens/game.c src/screens/options.c
+screens = src/screens/game.c
 
 build-all : ubuntu windows
 

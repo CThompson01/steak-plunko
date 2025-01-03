@@ -3,10 +3,9 @@
 
 enum Screen {
     GAME,
-    OPTIONS,
     CLOSE_GAME
 };
 
-int randomInRange(int min, int max);
+int RandomInRange(int min, int max);
 
 #endif
