@@ -2,7 +2,7 @@
 #include "../global.h"
 
 #define DEFAULT_PEGS 6
-#define PEG_RADIUS 10
+#define PEG_RADIUS 12
 #define DROP_RANGE 250
 
 Font font;
@@ -60,7 +60,7 @@ void generate_ball(PBall **tail) {
 	ball->y = 100;
 	ball->dx = 0;
 	ball->dy = 9;
-	ball->radius = 5;
+	ball->radius = 7;
 	ball->next = NULL;
 	ball->prev = (*tail);
 
@@ -197,11 +197,11 @@ enum Screen game_screen(Font defaultFont) {
 		// Draw zones
 		for (int i = 0; i < sizeof(zone_location)/sizeof(zone_location[0]); i++) {
 			if (i == 0 || i == 4) {
-				DrawRectangle(zone_location[i], height-25, zone_width, 25, RED);
+				DrawRectangle(zone_location[i], height-25, zone_width, 25, GREEN);
 			} else if (i == 1 || i == 3) {
 				DrawRectangle(zone_location[i], height-25, zone_width, 25, ORANGE);
 			} else {
-				DrawRectangle(zone_location[i], height-25, zone_width, 25, GREEN);
+				DrawRectangle(zone_location[i], height-25, zone_width, 25, RED);
 			}
 		}
 
@@ -228,7 +228,7 @@ enum Screen game_screen(Font defaultFont) {
 			int mouseX = GetMouseX();
 			int mouseY = GetMouseY();
 			printf("Mouse Down at (%d, %d)\n", mouseX, mouseY);
-			if (check_button_press(mouseX, mouseY, dropBallButton)) {
+			if (check_button_press(mouseX, mouseY, dropBallButton) && balance > 0) {
 				printf("Generating Ball\n");
 				generate_ball(&balls_tail);
 				balance--;
