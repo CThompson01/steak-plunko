@@ -83,17 +83,38 @@ void remove_ball(PBall **ball, PBall **tail) {
 	free(temp);
 }
 
+Color ZONE_COLORS[3] = {RED, ORANGE, GREEN};
+int zone_width;
+int height;
+int width;
+void draw_zone(int location, int value) {
+	// Make sure the proper color is available
+	if (value > sizeof(ZONE_COLORS)/sizeof(ZONE_COLORS[0])) {
+		return;
+	}
+
+	// Generate the zone label and calculate the offset for the text
+	char label[10] = "";
+	sprintf(label, "%dx", value);
+	int textWidth = MeasureTextEx(font, label, 21, 0).x;
+
+	// Start drawing the zone
+	DrawRectangle(location, height-25, zone_width, 25, ZONE_COLORS[value]);
+	DrawTextEx(font, label, (Vector2) {location+((zone_width-textWidth)/2), height-23},
+		21, 0, WHITE);
+}
+
 enum Screen GameScreen(Font defaultFont) {
 	// Init game screen
 	enum Screen next_screen = CLOSE_GAME;
 	font = defaultFont;
 	int frame_count = 0;
 
-	// Generate static screen layout values
-	int height = GetScreenHeight();
-	int width = GetScreenWidth();
+	// Implement static screen layout values
+	height = GetScreenHeight();
+	width = GetScreenWidth();
 	UIButton dropBallButton = {((width/3)*2)+10, 10, (width/3)-20, 30, "Drop"};
-	int balance = 100;
+	int balance = 99;
 	UIButton balanceDisplay = {10, 10, (width/3)-20, 30, "Balance"};
 
 	// Generate game objects
@@ -113,7 +134,7 @@ enum Screen GameScreen(Font defaultFont) {
 	pegs[5][1] = 300;
 
 	// Generate zones
-	int zone_width = (width/5);
+	zone_width = (width/5);
 	int zone_location[5] = {0};
 	for (int i = 0; i < 5; i++) {
 		zone_location[i] = zone_width * i;
@@ -190,7 +211,7 @@ enum Screen GameScreen(Font defaultFont) {
 
 		// ********** Render **********
 		BeginDrawing();
-		ClearBackground(BLACK);
+		ClearBackground(DARKBLUE);
 
 		// Draw pegs
 		for (int i = 0; i < sizeof(pegs)/sizeof(pegs[0]); i++) {
@@ -199,13 +220,8 @@ enum Screen GameScreen(Font defaultFont) {
 
 		// Draw zones
 		for (int i = 0; i < sizeof(zone_location)/sizeof(zone_location[0]); i++) {
-			if (i == 0 || i == 4) {
-				DrawRectangle(zone_location[i], height-25, zone_width, 25, GREEN);
-			} else if (i == 1 || i == 3) {
-				DrawRectangle(zone_location[i], height-25, zone_width, 25, ORANGE);
-			} else {
-				DrawRectangle(zone_location[i], height-25, zone_width, 25, RED);
-			}
+			int zone = abs(i - 2);
+			draw_zone(zone_location[i], zone);
 		}
 
 		// Draw balls
