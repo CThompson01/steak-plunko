@@ -4,7 +4,7 @@
 #include "raylib.h"
 #include "../global.h"
 
-#define DEFAULT_PEGS 10
+#define DEFAULT_PEGS 15
 #define PEG_RADIUS 12
 #define DROP_RANGE 250
 
@@ -100,16 +100,17 @@ enum Screen GameScreen(Font defaultFont) {
 	// Generate pegs
 	int pegs[DEFAULT_PEGS][2] = {0};
 	int num_in_row = 1;
-	const int pyramid_start_x = 100;
-	const int pyramid_offset_x = 50;
-	const int pyramid_start_y = 100;
+	int pyramid_start_x = width/2;
+	const int pyramid_offset_x = 75;
+	const int pyramid_start_y = height/5;
 	const int pyramid_offset_y = 50;
 	for (int i = 0; i < DEFAULT_PEGS; i++) {
 		int row_position = (i+1) - (SumTo(num_in_row) - num_in_row);
-		pegs[i][0] = (pyramid_offset_x * row_position) + pyramid_start_x;
+		pegs[i][0] = (pyramid_offset_x * (row_position-1)) + pyramid_start_x;
 		pegs[i][1] = (pyramid_offset_y * num_in_row) + pyramid_start_y;
 		if ((i+1) == SumTo(num_in_row)) {
 			num_in_row++;
+			pyramid_start_x -= pyramid_offset_x/2;
 		}
 	}
 
