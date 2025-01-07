@@ -142,9 +142,15 @@ enum Screen GameScreen(Font defaultFont) {
 			balls_curr->y += balls_curr->dy;
 
 			// Check if a ball goes off screen
-			if (balls_curr->x < 0 || balls_curr->x > width || balls_curr->y < 0) {
+			if (balls_curr->y < 0 || balls_curr->y > height) {
 				remove_ball(&balls_curr, &balls_tail);
 				continue;
+			}
+
+			if (balls_curr->x < 0) {
+				balls_curr->dx = abs(balls_curr->dx);
+			} else if (balls_curr->x > width) {
+				balls_curr->dx = -abs(balls_curr->dx);
 			}
 
 			// Check zone collision
