@@ -7,5 +7,6 @@ enum Screen {
 };
 
 int RandomInRange(int min, int max);
+int SumTo(int n);
 
 #endif
