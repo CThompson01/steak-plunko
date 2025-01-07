@@ -147,9 +147,9 @@ enum Screen GameScreen(Font defaultFont) {
 				continue;
 			}
 
-			if (balls_curr->x < 0) {
+			if ((balls_curr->x - balls_curr->radius) < 0) {
 				balls_curr->dx = abs(balls_curr->dx);
-			} else if (balls_curr->x > width) {
+			} else if ((balls_curr->x + balls_curr->radius) > width) {
 				balls_curr->dx = -abs(balls_curr->dx);
 			}
 
