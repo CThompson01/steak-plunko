@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <math.h>
 #include "raylib.h"
+#include "../uielements.h"
 #include "../global.h"
 
 #define DEFAULT_PEGS 15
@@ -12,38 +13,6 @@
 #define ZONE_ANIMATION_OFFSET 8
 
 Font font;
-
-typedef struct uibutton UIButton;
-struct uibutton {
-	int x;
-	int y;
-	int width;
-	int height;
-	char label[50];
-};
-
-void draw_button(UIButton button) {
-	DrawRectangle(button.x, button.y, button.width, button.height, GRAY);
-	int textOffset = MeasureTextEx(font, button.label, 28, 0).x/2;
-	DrawTextEx(font, button.label, (Vector2) {(button.x+(button.width/2))-textOffset, button.y},
-		28, 0, WHITE);
-}
-
-void draw_label_with_value(UIButton button, int value) {
-	char label[125] = "";
-	sprintf(label, "%s: %d", button.label, value);
-	DrawRectangle(button.x, button.y, button.width, button.height, GRAY);
-	int textOffset = MeasureTextEx(font, label, 28, 0).x/2;
-	DrawTextEx(font, label, (Vector2) {(button.x+(button.width/2))-textOffset, button.y},
-		28, 0, WHITE);
-}
-
-int check_button_press(int mx, int my, UIButton button) {
-	int xDiff = mx - button.x;
-	int yDiff = my - button.y;
-	return (xDiff < button.width) && (yDiff < button.height) &&
-		(xDiff > 0) && (yDiff > 0);
-}
 
 typedef struct Plinko_Ball PBall;
 struct Plinko_Ball {
@@ -262,8 +231,8 @@ enum Screen GameScreen(Font defaultFont) {
 		}
 
 		// Draw UI
-		draw_button(dropBallButton);
-		draw_label_with_value(balanceDisplay, balance);
+		DrawButton(dropBallButton, font);
+		DrawLabelWithValue(balanceDisplay, font, balance);
 
 		EndDrawing();
 
@@ -277,7 +246,7 @@ enum Screen GameScreen(Font defaultFont) {
 			int mouseX = GetMouseX();
 			int mouseY = GetMouseY();
 			printf("Mouse Down at (%d, %d)\n", mouseX, mouseY);
-			if (check_button_press(mouseX, mouseY, dropBallButton) && balance > 0) {
+			if (CheckButtonPress(mouseX, mouseY, dropBallButton) && balance > 0) {
 				printf("Generating Ball\n");
 				generate_ball(&balls_tail);
 				balance--;
