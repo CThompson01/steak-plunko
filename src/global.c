@@ -5,5 +5,5 @@ int RandomInRange(int min, int max) {
 }
 
 unsigned int SumTo(unsigned int n) {
-    return ((n * (n-1))/2) + n;
+    return (n * (n+1))/2;
 }
