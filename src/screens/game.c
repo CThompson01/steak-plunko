@@ -6,11 +6,16 @@
 #include "../global.h"
 
 #define DEFAULT_PEGS 15
-#define PEG_RADIUS 12
+#define PEG_RADIUS 7
 #define DROP_RANGE 250
 
 #define ZONE_ANIMATION_FRAMES 8
 #define ZONE_ANIMATION_OFFSET 8
+
+#define BALL_RADIUS 12
+#define BALL_UPDATE_FREQUENCY 4
+#define BALL_TERMINAL_VELOCITY 15
+#define BALL_COLOR SKYBLUE
 
 Font font;
 
@@ -35,7 +40,7 @@ void generate_ball(PBall **tail) {
 	ball->y = 100;
 	ball->dx = 0;
 	ball->dy = 9;
-	ball->radius = 7;
+	ball->radius = BALL_RADIUS;
 	ball->next = NULL;
 	ball->prev = (*tail);
 
@@ -170,6 +175,11 @@ enum Screen GameScreen(Font defaultFont) {
 						printf("Ball collided with peg %d\nTheta is %f\n", i, theta);
 						int dx = cos(theta) * 9;
 						int dy = sin(theta) * 9;
+
+						if (dx == 0) {
+							dx = 1;
+						}
+
 						if (adj < 0) {
 							balls_curr->dx = -dx;
 						} else {
@@ -184,7 +194,7 @@ enum Screen GameScreen(Font defaultFont) {
 			}
 
 			// gravity
-			if (balls_curr->dy < 9 && frame_count % 4 == 0) {
+			if (balls_curr->dy < BALL_TERMINAL_VELOCITY && frame_count % BALL_UPDATE_FREQUENCY == 0) {
 				balls_curr->dy += 1;
 			}
 
@@ -226,7 +236,7 @@ enum Screen GameScreen(Font defaultFont) {
 		// Draw balls
 		balls_curr = balls_head->next;
 		while (balls_curr != NULL) {
-			DrawCircle(balls_curr->x, balls_curr->y, balls_curr->radius, BLUE);
+			DrawCircle(balls_curr->x, balls_curr->y, balls_curr->radius, BALL_COLOR);
 			balls_curr = balls_curr->next;
 		}
 
