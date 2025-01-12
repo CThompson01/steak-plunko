@@ -81,6 +81,7 @@ enum Screen GameScreen(Font defaultFont) {
 	enum Screen next_screen = CLOSE_GAME;
 	font = defaultFont;
 	unsigned int frame_count = 0;
+	int paused = 0;
 
 	// Implement static screen layout values
 	height = GetScreenHeight();
@@ -88,6 +89,20 @@ enum Screen GameScreen(Font defaultFont) {
 	UIButton dropBallButton = {((width/3)*2)+10, 10, (width/3)-20, 30, "Drop"};
 	int balance = 99;
 	UIButton balanceDisplay = {10, 10, (width/3)-20, 30, "Balance"};
+
+	// Pause Modal Buttons
+	unsigned int modal_padding_x = width/8;
+	unsigned int modal_padding_y = height/4;
+	unsigned int modal_width = modal_padding_x * 6;
+	unsigned int modal_height = modal_padding_y * 2;
+
+	int buttonWidth = (modal_width/4)-5;
+	int buttonAreaStart = modal_padding_x + (modal_width/4);
+	UIButton applyButton = {buttonAreaStart, (modal_padding_y + modal_height) - (50 + 10),
+		buttonWidth, 50, "Apply", 0};
+	UIButton closeButton = {buttonAreaStart + buttonWidth + 5,
+		(modal_padding_y + modal_height) - (50 + 10),
+		buttonWidth, 50, "Close", 0};
 
 	// Generate game objects
 	// Generate pegs
@@ -234,24 +249,74 @@ enum Screen GameScreen(Font defaultFont) {
 		DrawButton(dropBallButton, font);
 		DrawLabelWithValue(balanceDisplay, font, balance);
 
+		// Draw Pause Menu
+		if (paused) {
+			// Draw back drop
+			DrawRectangle(modal_padding_x, modal_padding_y+2,
+				width-(modal_padding_x*2), height-(modal_padding_y*2),
+				BLACK);
+			DrawRectangle(modal_padding_x, modal_padding_y,
+				width-(modal_padding_x*2), height-(modal_padding_y*2),
+				BLUE);
+
+			DrawDropShadowButton(applyButton, font, 2);
+			DrawDropShadowButton(closeButton, font, 2);
+		}
+
 		EndDrawing();
 
 		// ********** Input **********
-		if (IsKeyPressed(KEY_ESCAPE)) {
-			next_screen = CLOSE_GAME;
-			break;
-		}
+		if (!paused) {
+			if (IsKeyPressed(KEY_ESCAPE)) {
+				paused = 1;
+				continue;
+			}
 
-		if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
-			int mouseX = GetMouseX();
-			int mouseY = GetMouseY();
-			printf("Mouse Down at (%d, %d)\n", mouseX, mouseY);
-			if (CheckButtonPress(mouseX, mouseY, dropBallButton) && balance > 0) {
-				printf("Generating Ball\n");
-				generate_ball(&balls_tail);
-				balance--;
+			if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+				int mouseX = GetMouseX();
+				int mouseY = GetMouseY();
+				printf("Mouse Down at (%d, %d)\n", mouseX, mouseY);
+				if (CheckButtonPress(mouseX, mouseY, dropBallButton) && balance > 0) {
+					printf("Generating Ball\n");
+					generate_ball(&balls_tail);
+					balance--;
+				}
+			}
+		} else {
+			if (IsKeyPressed(KEY_ESCAPE)) {
+				paused = 0;
+				continue;
+			}
+
+			if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+				int mouseX = GetMouseX();
+				int mouseY = GetMouseY();
+				printf("Mouse Pressed at (%d, %d)\n", mouseX, mouseY);
+
+				if (CheckButtonPress(mouseX, mouseY, applyButton)) {
+					applyButton.pressed = 1;
+					continue;
+				} else if (CheckButtonPress(mouseX, mouseY, closeButton)) {
+					closeButton.pressed = 1;
+					continue;
+				}
+			}
+
+			if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) {
+				int mouseX = GetMouseX();
+				int mouseY = GetMouseY();
+				printf("Mouse Released at (%d, %d)\n", mouseX, mouseY);
+
+				if (CheckButtonPress(mouseX, mouseY, closeButton) && closeButton.pressed) {
+					paused = 0;
+				}
+
+				// Unpress all buttons (TODO: find a better way to do this)
+				applyButton.pressed = 0;
+				closeButton.pressed = 0;
 			}
 		}
+		
 
 		frame_count++;
 	}

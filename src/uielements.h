@@ -8,9 +8,11 @@ struct uibutton {
     int width;
     int height;
     char label[50];
+    int pressed;
 };
 
 void DrawButton(UIButton button, Font font);
+void DrawDropShadowButton(UIButton button, Font font, int offset);
 void DrawLabelWithValue(UIButton button, Font font, int value);
 int CheckButtonPress(int mx, int my, UIButton button);
 
