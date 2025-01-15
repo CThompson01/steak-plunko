@@ -104,6 +104,9 @@ enum Screen GameScreen(Font defaultFont) {
 		(modal_padding_y + modal_height) - (50 + 10),
 		buttonWidth, 50, "Close", 0};
 
+	ScrollSelector *aspectRatioSelector = CreateScrollSelector("Aspect Ratio",
+		(char*[]) {"9:16", "3:4"}, 2, width/2, modal_padding_y + 50);
+
 	// Generate game objects
 	// Generate pegs
 	int pegs[DEFAULT_PEGS][2] = {0};
@@ -259,6 +262,10 @@ enum Screen GameScreen(Font defaultFont) {
 				width-(modal_padding_x*2), height-(modal_padding_y*2),
 				BLUE);
 
+			// Draw aspect buttons
+			DrawScrollSelector(aspectRatioSelector, font);
+
+			// Draw apply buttons
 			DrawDropShadowButton(applyButton, font, 2);
 			DrawDropShadowButton(closeButton, font, 2);
 		}
@@ -282,10 +289,24 @@ enum Screen GameScreen(Font defaultFont) {
 					balance--;
 				}
 			}
-		} else {
+		} else { // Pause Menu
 			if (IsKeyPressed(KEY_ESCAPE)) {
 				paused = 0;
 				continue;
+			}
+
+			if (IsKeyPressed(KEY_A)) {
+				aspectRatioSelector->selected--;
+				if (aspectRatioSelector->selected < 0) {
+					aspectRatioSelector->selected = aspectRatioSelector->num_options-1;
+				}
+			}
+
+			if (IsKeyPressed(KEY_D)) {
+				aspectRatioSelector->selected++;
+				if (aspectRatioSelector->selected > aspectRatioSelector->num_options-1) {
+					aspectRatioSelector->selected = 0;
+				}
 			}
 
 			if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
