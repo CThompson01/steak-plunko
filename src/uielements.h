@@ -14,4 +14,15 @@ void DrawButton(UIButton button, Font font);
 void DrawLabelWithValue(UIButton button, Font font, int value);
 int CheckButtonPress(int mx, int my, UIButton button);
 
+enum UIType { BUTTON };
+typedef struct uielement UIElement;
+struct uielement {
+    enum UIType type;
+    union {
+        UIButton button;
+    };
+};
+
+void DrawUIElement(UIElement element, Font font);
+
 #endif

@@ -24,3 +24,14 @@ int CheckButtonPress(int mx, int my, UIButton button) {
     return (xDiff < button.width) && (yDiff < button.height) &&
         (xDiff > 0) && (yDiff > 0);
 }
+
+void DrawUIElement(UIElement element, Font font) {
+    switch (element.type) {
+        case BUTTON:
+            DrawButton(element.button, font);
+            break;
+        default:
+            printf("UI Type not found.\n");
+            break;
+    }
+}
