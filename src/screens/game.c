@@ -85,9 +85,13 @@ enum Screen GameScreen(Font defaultFont) {
 	// Implement static screen layout values
 	height = GetScreenHeight();
 	width = GetScreenWidth();
-	UIButton dropBallButton = {((width/3)*2)+10, 10, (width/3)-20, 30, "Drop"};
 	int balance = 99;
-	UIButton balanceDisplay = {10, 10, (width/3)-20, 30, "Balance"};
+	UIButton drop = {((width/3)*2)+10, 10, (width/3)-20, 30, "Drop"};
+	UIButton balance_label = {10, 10, (width/3)-20, 30, "Balance"};
+	UIElement uielements[] = {
+		{BUTTON, drop},
+		{BUTTON, balance_label}
+	};
 
 	// Generate game objects
 	// Generate pegs
@@ -231,8 +235,11 @@ enum Screen GameScreen(Font defaultFont) {
 		}
 
 		// Draw UI
-		DrawButton(dropBallButton, font);
-		DrawLabelWithValue(balanceDisplay, font, balance);
+		for (int i = 0; i < 2; i++) {
+			DrawUIElement(uielements[i], font);
+		}
+		// DrawButton(dropBallButton, font);
+		// DrawLabelWithValue(balanceDisplay, font, balance);
 
 		EndDrawing();
 
@@ -246,7 +253,7 @@ enum Screen GameScreen(Font defaultFont) {
 			int mouseX = GetMouseX();
 			int mouseY = GetMouseY();
 			printf("Mouse Down at (%d, %d)\n", mouseX, mouseY);
-			if (CheckButtonPress(mouseX, mouseY, dropBallButton) && balance > 0) {
+			if (CheckButtonPress(mouseX, mouseY, uielements[0].button) && balance > 0) {
 				printf("Generating Ball\n");
 				generate_ball(&balls_tail);
 				balance--;
