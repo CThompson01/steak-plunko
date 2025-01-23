@@ -86,11 +86,8 @@ enum Screen GameScreen(Font defaultFont) {
 	height = GetScreenHeight();
 	width = GetScreenWidth();
 	int balance = 99;
-	int uielements_len = 2;
-	UIElement uielements[] = {
-		CreateButtonElement("drop_button", "Drop", ((width/3)*2)+10, 10, (width/3)-20, 30),
-		CreateNumberLabelElement("balance_display", "Balance", &balance, 10, 10, (width/3)-20, 30)
-	};
+	UIButton dropButton = CreateButton("Drop", ((width/3)*2)+10, 10, (width/3)-20, 30);
+	UINumberLabel balanceDisplay = CreateNumberLabel("Balance", &balance, 10, 10, (width/3)-20, 30);
 
 	// Generate game objects
 	// Generate pegs
@@ -234,11 +231,8 @@ enum Screen GameScreen(Font defaultFont) {
 		}
 
 		// Draw UI
-		for (int i = 0; i < 2; i++) {
-			DrawUIElement(uielements[i], font);
-		}
-		// DrawButton(dropBallButton, font);
-		// DrawLabelWithValue(balanceDisplay, font, balance);
+		DrawButton(dropButton, font);
+		DrawNumberLabel(balanceDisplay, font);
 
 		EndDrawing();
 
@@ -252,10 +246,7 @@ enum Screen GameScreen(Font defaultFont) {
 			int mouseX = GetMouseX();
 			int mouseY = GetMouseY();
 			printf("Mouse Down at (%d, %d)\n", mouseX, mouseY);
-			if (CheckButtonPress(
-				uielements[GetIndexOfKey(uielements, uielements_len, "drop_button")].element.button,
-				mouseX, mouseY)
-				&& balance > 0) {
+			if (CheckButtonPress(dropButton, mouseX, mouseY) && balance > 0) {
 				printf("Generating Ball\n");
 				generate_ball(&balls_tail);
 				balance--;
@@ -264,6 +255,6 @@ enum Screen GameScreen(Font defaultFont) {
 
 		frame_count++;
 	}
-	
+
 	return next_screen;
 }

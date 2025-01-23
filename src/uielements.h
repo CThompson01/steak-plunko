@@ -10,6 +10,7 @@ struct uibutton {
     char label[50];
 };
 
+UIButton CreateButton(char label[], int x, int y, int width, int height);
 void DrawButton(UIButton button, Font font);
 int CheckButtonPress(UIButton button, int mx, int my);
 
@@ -22,6 +23,7 @@ struct uinumberlabel {
     int *value;
     char label[50];
 };
+UINumberLabel CreateNumberLabel(char label[], int *value, int x, int y, int width, int height);
 void DrawNumberLabel(UINumberLabel label, Font font);
 
 enum UIType { UIT_BUTTON, UIT_NUMLABEL };

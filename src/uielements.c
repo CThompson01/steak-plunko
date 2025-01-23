@@ -3,6 +3,12 @@
 #include "raylib.h"
 #include "uielements.h"
 
+UIButton CreateButton(char label[], int x, int y, int width, int height) {
+    UIButton button = {x, y, width, height};
+    strcpy(button.label, label);
+    return button;
+}
+
 void DrawButton(UIButton button, Font font) {
     DrawRectangle(button.x, button.y, button.width, button.height, GRAY);
     int textOffset = MeasureTextEx(font, button.label, 28, 0).x/2;
@@ -15,6 +21,12 @@ int CheckButtonPress(UIButton button, int mx, int my) {
     int yDiff = my - button.y;
     return (xDiff < button.width) && (yDiff < button.height) &&
         (xDiff > 0) && (yDiff > 0);
+}
+
+UINumberLabel CreateNumberLabel(char label[], int *value, int x, int y, int width, int height) {
+    UINumberLabel numLabel = {x, y, width, height, value};
+    strcpy(numLabel.label, label);
+    return numLabel;
 }
 
 void DrawNumberLabel(UINumberLabel numLabel, Font font) {
