@@ -30,7 +30,7 @@ void ButtonPressed(UIButton button, int mx, int my, void *context) {
 }
 
 int DefaultButtonCallback() {
-    printf("Button has been pressed\n");
+    printf("Button has been pressed.\n");
     return 0;
 }
 
