@@ -85,12 +85,12 @@ typedef struct gamestate {
 	PBall **balls_tail;
 } GameState;
 
-int dropButtonCallback(GameState *callback_args) {
-	printf("Balance Value: %d\n", callback_args->balance);
-	if (callback_args->balance > 0) {
+int dropButtonCallback(GameState *gameState) {
+	printf("Balance Value: %d\n", gameState->balance);
+	if (gameState->balance > 0) {
 		printf("Generating Ball\n");
-		generate_ball((callback_args->balls_tail));
-		callback_args->balance -= 1;
+		generate_ball((gameState->balls_tail));
+		gameState->balance -= 1;
 	}
 	return 0;
 }
