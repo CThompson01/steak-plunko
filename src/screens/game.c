@@ -12,6 +12,8 @@
 #define ZONE_ANIMATION_FRAMES 8
 #define ZONE_ANIMATION_OFFSET 8
 
+#define DEFAULT_BALANCE 99
+
 Font font;
 
 typedef struct Plinko_Ball PBall;
@@ -76,17 +78,19 @@ void draw_zone(int location, int animation_offset, int value) {
 		21, 0, WHITE);
 }
 
-struct testDropCallback {
-	int *balance;
-	PBall **tail;
-};
+typedef struct gamestate {
+	int balance;
+	PBall **balls_head;
+	PBall **balls_curr;
+	PBall **balls_tail;
+} GameState;
 
-int dropButtonCallback(struct testDropCallback *callback_args) {
-	printf("Balance Value: %d\n", *(callback_args->balance));
-	if (*(callback_args->balance) > 0) {
+int dropButtonCallback(GameState *callback_args) {
+	printf("Balance Value: %d\n", callback_args->balance);
+	if (callback_args->balance > 0) {
 		printf("Generating Ball\n");
-		generate_ball((callback_args->tail));
-		*(callback_args->balance) -= 1;
+		generate_ball((callback_args->balls_tail));
+		callback_args->balance -= 1;
 	}
 	return 0;
 }
@@ -97,13 +101,20 @@ enum Screen GameScreen(Font defaultFont) {
 	font = defaultFont;
 	unsigned int frame_count = 0;
 
+	// Initialize game state
+	GameState gameState = {
+		DEFAULT_BALANCE,
+		NULL,
+		NULL,
+		NULL
+	};
+
 	// Implement static screen layout values
 	height = GetScreenHeight();
 	width = GetScreenWidth();
-	int balance = 99;
 	UIButton dropButton = CreateButton("Drop", ((width/3)*2)+10, 10, (width/3)-20, 30);
 	dropButton.callback = &dropButtonCallback;
-	UINumberLabel balanceDisplay = CreateNumberLabel("Balance", &balance, 10, 10, (width/3)-20, 30);
+	UINumberLabel balanceDisplay = CreateNumberLabel("Balance", &gameState.balance, 10, 10, (width/3)-20, 30);
 
 	// Generate game objects
 	// Generate pegs
@@ -143,7 +154,10 @@ enum Screen GameScreen(Font defaultFont) {
 	PBall *balls_tail = balls_head;
 	PBall *balls_curr = balls_head;
 
-	struct testDropCallback testing = {&balance, &balls_tail};
+	// Set up balls pointers in game state
+	gameState.balls_head = &balls_head;
+	gameState.balls_curr = &balls_curr;
+	gameState.balls_tail = &balls_tail;
 
 	// Run game screen
 	while (!WindowShouldClose()) {
@@ -171,7 +185,7 @@ enum Screen GameScreen(Font defaultFont) {
 				int raw_zone = ((balls_curr->x/zone_width)+1);
 				int zone = abs(raw_zone - 3);
 				remove_ball(&balls_curr, &balls_tail);
-				balance += zone;
+				gameState.balance += zone;
 				zone_animation_state[raw_zone-1] = 1; // start the zone animation
 				printf("Ball Collided with Zone %d. Paying out %d.\n", raw_zone, zone);
 				continue;
@@ -264,7 +278,7 @@ enum Screen GameScreen(Font defaultFont) {
 			int mouseX = GetMouseX();
 			int mouseY = GetMouseY();
 			printf("Mouse Down at (%d, %d)\n", mouseX, mouseY);
-			CheckButtonInput(dropButton, mouseX, mouseY, &testing);
+			CheckButtonInput(dropButton, mouseX, mouseY, &gameState);
 		}
 
 		frame_count++;
