@@ -4,7 +4,7 @@
 #include "uielements.h"
 
 UIButton CreateButton(char label[], int x, int y, int width, int height) {
-    UIButton button = {x, y, width, height};
+    UIButton button = {x, y, width, height, &DefaultButtonCallback};
     strcpy(button.label, label);
     return button;
 }
@@ -21,6 +21,20 @@ int CheckButtonPress(UIButton button, int mx, int my) {
     int yDiff = my - button.y;
     return (xDiff < button.width) && (yDiff < button.height) &&
         (xDiff > 0) && (yDiff > 0);
+}
+
+void CheckButtonInput(UIButton button, int mx, int my, void *arg_struct) {
+    int xDiff = mx - button.x;
+    int yDiff = my - button.y;
+    if ((xDiff < button.width) && (yDiff < button.height) &&
+        (xDiff > 0) && (yDiff > 0)) {
+        button.callback(arg_struct);
+    }
+}
+
+int DefaultButtonCallback() {
+    printf("Button has been pressed\n");
+    return 0;
 }
 
 UINumberLabel CreateNumberLabel(char label[], int *value, int x, int y, int width, int height) {

@@ -7,12 +7,15 @@ struct uibutton {
     int y;
     int width;
     int height;
+    int (*callback)(void*);
     char label[50];
 };
 
 UIButton CreateButton(char label[], int x, int y, int width, int height);
 void DrawButton(UIButton button, Font font);
 int CheckButtonPress(UIButton button, int mx, int my);
+void CheckButtonInput(UIButton button, int mx, int my, void *arg_struct);
+int DefaultButtonCallback();
 
 typedef struct uinumberlabel UINumberLabel;
 struct uinumberlabel {

@@ -76,6 +76,21 @@ void draw_zone(int location, int animation_offset, int value) {
 		21, 0, WHITE);
 }
 
+struct testDropCallback {
+	int *balance;
+	PBall *tail;
+};
+
+int dropButtonCallback(struct testDropCallback *callback_args) {
+	printf("Balance Value: %d\n", *(callback_args->balance));
+	if (*(callback_args->balance) > 0) {
+		printf("Generating Ball\n");
+		generate_ball(&(callback_args->tail));
+		*(callback_args->balance) -= 1;
+	}
+	return 0;
+}
+
 enum Screen GameScreen(Font defaultFont) {
 	// Init game screen
 	enum Screen next_screen = CLOSE_GAME;
@@ -87,6 +102,7 @@ enum Screen GameScreen(Font defaultFont) {
 	width = GetScreenWidth();
 	int balance = 99;
 	UIButton dropButton = CreateButton("Drop", ((width/3)*2)+10, 10, (width/3)-20, 30);
+	dropButton.callback = &dropButtonCallback;
 	UINumberLabel balanceDisplay = CreateNumberLabel("Balance", &balance, 10, 10, (width/3)-20, 30);
 
 	// Generate game objects
@@ -126,6 +142,8 @@ enum Screen GameScreen(Font defaultFont) {
 	balls_head->prev = NULL;
 	PBall *balls_tail = balls_head;
 	PBall *balls_curr = balls_head;
+
+	struct testDropCallback testing = {&balance, balls_tail};
 
 	// Run game screen
 	while (!WindowShouldClose()) {
@@ -246,11 +264,7 @@ enum Screen GameScreen(Font defaultFont) {
 			int mouseX = GetMouseX();
 			int mouseY = GetMouseY();
 			printf("Mouse Down at (%d, %d)\n", mouseX, mouseY);
-			if (CheckButtonPress(dropButton, mouseX, mouseY) && balance > 0) {
-				printf("Generating Ball\n");
-				generate_ball(&balls_tail);
-				balance--;
-			}
+			CheckButtonInput(dropButton, mouseX, mouseY, &testing);
 		}
 
 		frame_count++;
