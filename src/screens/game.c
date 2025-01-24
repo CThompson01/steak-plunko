@@ -78,14 +78,14 @@ void draw_zone(int location, int animation_offset, int value) {
 
 struct testDropCallback {
 	int *balance;
-	PBall *tail;
+	PBall **tail;
 };
 
 int dropButtonCallback(struct testDropCallback *callback_args) {
 	printf("Balance Value: %d\n", *(callback_args->balance));
 	if (*(callback_args->balance) > 0) {
 		printf("Generating Ball\n");
-		generate_ball(&(callback_args->tail));
+		generate_ball((callback_args->tail));
 		*(callback_args->balance) -= 1;
 	}
 	return 0;
@@ -143,7 +143,7 @@ enum Screen GameScreen(Font defaultFont) {
 	PBall *balls_tail = balls_head;
 	PBall *balls_curr = balls_head;
 
-	struct testDropCallback testing = {&balance, balls_tail};
+	struct testDropCallback testing = {&balance, &balls_tail};
 
 	// Run game screen
 	while (!WindowShouldClose()) {
