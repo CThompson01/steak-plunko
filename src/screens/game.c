@@ -278,7 +278,7 @@ enum Screen GameScreen(Font defaultFont) {
 			int mouseX = GetMouseX();
 			int mouseY = GetMouseY();
 			printf("Mouse Down at (%d, %d)\n", mouseX, mouseY);
-			CheckButtonInput(dropButton, mouseX, mouseY, &gameState);
+			ButtonPressed(dropButton, mouseX, mouseY, &gameState);
 		}
 
 		frame_count++;

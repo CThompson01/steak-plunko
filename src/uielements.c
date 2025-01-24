@@ -23,12 +23,9 @@ int CheckButtonPress(UIButton button, int mx, int my) {
         (xDiff > 0) && (yDiff > 0);
 }
 
-void CheckButtonInput(UIButton button, int mx, int my, void *arg_struct) {
-    int xDiff = mx - button.x;
-    int yDiff = my - button.y;
-    if ((xDiff < button.width) && (yDiff < button.height) &&
-        (xDiff > 0) && (yDiff > 0)) {
-        button.callback(arg_struct);
+void ButtonPressed(UIButton button, int mx, int my, void *context) {
+    if (CheckButtonPress(button, mx, my)) {
+        button.callback(context);
     }
 }
 
@@ -62,6 +59,17 @@ void DrawUIElement(UIElement element, Font font) {
             break;
         default:
             printf("UI Type not found.\n");
+            break;
+    }
+}
+
+void CheckUIElementInput(UIElement element, int mx, int my, void *context) {
+    switch (element.type) {
+        case UIT_BUTTON:
+            ButtonPressed(element.element.button, mx, my, context);
+            break;
+        default:
+            printf("UI Type not an input.\n");
             break;
     }
 }
