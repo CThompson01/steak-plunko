@@ -22,7 +22,11 @@ build/plinko.exe : src/plinko.c src/global.c $(screens) $(etc)
 
 build-release : build/release/plinko.exe
 
-build/release/plinko.exe : src/plinko.c src/global.c $(screens) $(etc)
+build/release/plinko.exe : src/plinko.c src/global.c src/plinko-res.o $(screens) $(etc)
 	mkdir -p build/release
-	x86_64-w64-mingw32-gcc src/plinko.c src/global.c $(screens) $(etc) $(win-args) -Wl,--subsystem,windows -o build/release/plinko.exe
+	x86_64-w64-mingw32-gcc src/plinko.c src/global.c src/plinko-res.o $(screens) $(etc) $(win-args) -Wl,--subsystem,windows -o build/release/plinko.exe
 	cp -r src/resources build/release/resources
+	rm src/plinko-res.o
+
+src/plinko-res.o : src/plinko-res.rc
+	x86_64-w64-mingw32-windres src/plinko-res.rc -o src/plinko-res.o
