@@ -1,1 +1,20 @@
 windowsIcon ICON "resources/icon.ico"
+
+1 VERSIONINFO
+FILEVERSION 0,0,1
+PRODUCTVERSION 0,0,1
+BEGIN
+	BLOCK "StringFileInfo"
+	BEGIN
+		BLOCK "040904E4"
+		BEGIN
+			VALUE "ProductName", "Plunko Game"
+			VALUE "ProductVersion", "0.0.1"
+			VALUE "FileDescription", "A simple desktop ball and peg style gambling game."
+		END
+	END
+	BLOCK "VarFileInfo"
+	BEGIN
+		VALUE "Translation", 0x0409, 1252
+	END
+END
