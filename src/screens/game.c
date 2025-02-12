@@ -12,6 +12,8 @@
 #define ZONE_ANIMATION_FRAMES 8
 #define ZONE_ANIMATION_OFFSET 8
 
+#define DEFAULT_BALANCE 99
+
 Font font;
 
 typedef struct Plinko_Ball PBall;
@@ -76,6 +78,23 @@ void draw_zone(int location, int animation_offset, int value) {
 		21, 0, WHITE);
 }
 
+typedef struct gamestate {
+	int balance;
+	PBall **balls_head;
+	PBall **balls_curr;
+	PBall **balls_tail;
+} GameState;
+
+int dropButtonCallback(GameState *gameState) {
+	printf("Balance Value: %d\n", gameState->balance);
+	if (gameState->balance > 0) {
+		printf("Generating Ball\n");
+		generate_ball((gameState->balls_tail));
+		gameState->balance -= 1;
+	}
+	return 0;
+}
+
 enum Screen GameScreen(Font defaultFont) {
 	// Init game screen
 	enum Screen next_screen = CLOSE_GAME;
@@ -83,12 +102,20 @@ enum Screen GameScreen(Font defaultFont) {
 	unsigned int frame_count = 0;
 	int paused = 0;
 
+	// Initialize game state
+	GameState gameState = {
+		DEFAULT_BALANCE,
+		NULL,
+		NULL,
+		NULL
+	};
+
 	// Implement static screen layout values
 	height = GetScreenHeight();
 	width = GetScreenWidth();
-	UIButton dropBallButton = {((width/3)*2)+10, 10, (width/3)-20, 30, "Drop"};
-	int balance = 99;
-	UIButton balanceDisplay = {10, 10, (width/3)-20, 30, "Balance"};
+	UIButton dropButton = CreateButton("Drop", ((width/3)*2)+10, 10, (width/3)-20, 30);
+	dropButton.callback = &dropButtonCallback;
+	UINumberLabel balanceDisplay = CreateNumberLabel("Balance", &gameState.balance, 10, 10, (width/3)-20, 30);
 
 	// Pause Modal Buttons
 	unsigned int modal_padding_x = width/8;
@@ -98,11 +125,12 @@ enum Screen GameScreen(Font defaultFont) {
 
 	int buttonWidth = (modal_width/4)-5;
 	int buttonAreaStart = modal_padding_x + (modal_width/4);
-	UIButton applyButton = {buttonAreaStart, (modal_padding_y + modal_height) - (50 + 10),
-		buttonWidth, 50, "Apply", 0};
-	UIButton closeButton = {buttonAreaStart + buttonWidth + 5,
-		(modal_padding_y + modal_height) - (50 + 10),
-		buttonWidth, 50, "Close", 0};
+	UIButton applyButton = CreateButton("Apply",
+		buttonAreaStart, (modal_padding_y + modal_height) - (50 + 10),
+		buttonWidth, 50);
+	UIButton closeButton = CreateButton("Close",
+		buttonAreaStart + buttonWidth + 5, (modal_padding_y + modal_height) - (50 + 10),
+		buttonWidth, 50);
 
 	ScrollSelector *aspectRatioSelector = CreateScrollSelector("Aspect Ratio",
 		(char*[]) {"9:16", "3:4"}, 2, width/2, modal_padding_y + 50);
@@ -145,6 +173,11 @@ enum Screen GameScreen(Font defaultFont) {
 	PBall *balls_tail = balls_head;
 	PBall *balls_curr = balls_head;
 
+	// Set up balls pointers in game state
+	gameState.balls_head = &balls_head;
+	gameState.balls_curr = &balls_curr;
+	gameState.balls_tail = &balls_tail;
+
 	// Run game screen
 	while (!WindowShouldClose()) {
 		// ********** Update **********
@@ -171,7 +204,7 @@ enum Screen GameScreen(Font defaultFont) {
 				int raw_zone = ((balls_curr->x/zone_width)+1);
 				int zone = abs(raw_zone - 3);
 				remove_ball(&balls_curr, &balls_tail);
-				balance += zone;
+				gameState.balance += zone;
 				zone_animation_state[raw_zone-1] = 1; // start the zone animation
 				printf("Ball Collided with Zone %d. Paying out %d.\n", raw_zone, zone);
 				continue;
@@ -249,8 +282,8 @@ enum Screen GameScreen(Font defaultFont) {
 		}
 
 		// Draw UI
-		DrawButton(dropBallButton, font);
-		DrawLabelWithValue(balanceDisplay, font, balance);
+		DrawButton(dropButton, font);
+		DrawNumberLabel(balanceDisplay, font);
 
 		// Draw Pause Menu
 		if (paused) {
@@ -266,8 +299,8 @@ enum Screen GameScreen(Font defaultFont) {
 			DrawScrollSelector(aspectRatioSelector, font);
 
 			// Draw apply buttons
-			DrawDropShadowButton(applyButton, font, 2);
-			DrawDropShadowButton(closeButton, font, 2);
+			DrawButton(applyButton, font);
+			DrawButton(closeButton, font);
 		}
 
 		EndDrawing();
@@ -283,11 +316,7 @@ enum Screen GameScreen(Font defaultFont) {
 				int mouseX = GetMouseX();
 				int mouseY = GetMouseY();
 				printf("Mouse Down at (%d, %d)\n", mouseX, mouseY);
-				if (CheckButtonPress(mouseX, mouseY, dropBallButton) && balance > 0) {
-					printf("Generating Ball\n");
-					generate_ball(&balls_tail);
-					balance--;
-				}
+				ButtonPressed(dropButton, mouseX, mouseY, &gameState);
 			}
 		} else { // Pause Menu
 			if (IsKeyPressed(KEY_ESCAPE)) {
@@ -314,10 +343,10 @@ enum Screen GameScreen(Font defaultFont) {
 				int mouseY = GetMouseY();
 				printf("Mouse Pressed at (%d, %d)\n", mouseX, mouseY);
 
-				if (CheckButtonPress(mouseX, mouseY, applyButton)) {
+				if (CheckButtonPress(applyButton, mouseX, mouseY)) {
 					applyButton.pressed = 1;
 					continue;
-				} else if (CheckButtonPress(mouseX, mouseY, closeButton)) {
+				} else if (CheckButtonPress(closeButton, mouseX, mouseY)) {
 					closeButton.pressed = 1;
 					continue;
 				}
@@ -328,7 +357,7 @@ enum Screen GameScreen(Font defaultFont) {
 				int mouseY = GetMouseY();
 				printf("Mouse Released at (%d, %d)\n", mouseX, mouseY);
 
-				if (CheckButtonPress(mouseX, mouseY, closeButton) && closeButton.pressed) {
+				if (CheckButtonPress(closeButton, mouseX, mouseY) && closeButton.pressed) {
 					paused = 0;
 				}
 
@@ -337,10 +366,9 @@ enum Screen GameScreen(Font defaultFont) {
 				closeButton.pressed = 0;
 			}
 		}
-		
 
 		frame_count++;
 	}
-	
+
 	return next_screen;
 }

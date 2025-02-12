@@ -4,14 +4,22 @@
 #include "raylib.h"
 #include "uielements.h"
 
-void DrawButton(UIButton button, Font font) {
-    DrawRectangle(button.x, button.y, button.width, button.height, GRAY);
-    int textOffset = MeasureTextEx(font, button.label, 28, 0).x/2;
-    DrawTextEx(font, button.label, (Vector2) {(button.x+(button.width/2))-textOffset, button.y},
-        28, 0, WHITE);
+UIButton CreateButton(char label[], int x, int y, int width, int height) {
+    UIButton button = {x, y, width, height, &DefaultButtonCallback};
+    strcpy(button.label, label);
+    button.pressed = 0;
+    return button;
 }
 
-void DrawDropShadowButton(UIButton button, Font font, int offset) {
+// void DrawButton(UIButton button, Font font) {
+//     DrawRectangle(button.x, button.y, button.width, button.height, GRAY);
+//     int textOffset = MeasureTextEx(font, button.label, 28, 0).x/2;
+//     DrawTextEx(font, button.label, (Vector2) {(button.x+(button.width/2))-textOffset, button.y},
+//         28, 0, WHITE);
+// }
+
+void DrawButton(UIButton button, Font font) {
+    const int offset = 2;
     if (!button.pressed) {
         DrawRectangle(button.x, button.y + offset, button.width, button.height, BLACK);
         DrawRectangle(button.x, button.y, button.width, button.height, GRAY);
@@ -26,16 +34,7 @@ void DrawDropShadowButton(UIButton button, Font font, int offset) {
     }
 }
 
-void DrawLabelWithValue(UIButton button, Font font, int value) {
-    char label[125] = "";
-    sprintf(label, "%s: %d", button.label, value);
-    DrawRectangle(button.x, button.y, button.width, button.height, GRAY);
-    int textOffset = MeasureTextEx(font, label, 28, 0).x/2;
-    DrawTextEx(font, label, (Vector2) {(button.x+(button.width/2))-textOffset, button.y},
-        28, 0, WHITE);
-}
-
-int CheckButtonPress(int mx, int my, UIButton button) {
+int CheckButtonPress(UIButton button, int mx, int my) {
     int xDiff = mx - button.x;
     int yDiff = my - button.y;
     return (xDiff < button.width) && (yDiff < button.height) &&
@@ -99,4 +98,83 @@ void DrawScrollSelector(ScrollSelector *s, Font font) {
     DrawTextEx(font, "<",
         (Vector2) {tb_x_l + X_PADDING, tb_y + Y_PADDING},
         FONT_HEIGHT, 0, WHITE);
+}
+
+void ButtonPressed(UIButton button, int mx, int my, void *context) {
+    if (CheckButtonPress(button, mx, my)) {
+        button.callback(context);
+    }
+}
+
+int DefaultButtonCallback() {
+    printf("Button has been pressed.\n");
+    return 0;
+}
+
+UINumberLabel CreateNumberLabel(char label[], int *value, int x, int y, int width, int height) {
+    UINumberLabel numLabel = {x, y, width, height, value};
+    strcpy(numLabel.label, label);
+    return numLabel;
+}
+
+void DrawNumberLabel(UINumberLabel numLabel, Font font) {
+    char label[125] = "";
+    sprintf(label, "%s: %d", numLabel.label, *numLabel.value);
+    DrawRectangle(numLabel.x, numLabel.y, numLabel.width, numLabel.height, GRAY);
+    int textOffset = MeasureTextEx(font, label, 28, 0).x/2;
+    DrawTextEx(font, label, (Vector2) {(numLabel.x+(numLabel.width/2))-textOffset, numLabel.y},
+        28, 0, WHITE);
+}
+
+void DrawUIElement(UIElement element, Font font) {
+    switch (element.type) {
+        case UIT_BUTTON:
+            DrawButton(element.element.button, font);
+            break;
+        case UIT_NUMLABEL:
+            DrawNumberLabel(element.element.numLabel, font);
+            break;
+        default:
+            printf("UI Type not found.\n");
+            break;
+    }
+}
+
+void CheckUIElementInput(UIElement element, int mx, int my, void *context) {
+    switch (element.type) {
+        case UIT_BUTTON:
+            ButtonPressed(element.element.button, mx, my, context);
+            break;
+        default:
+            printf("UI Type not an input.\n");
+            break;
+    }
+}
+
+int GetIndexOfKey(UIElement *elements, int elements_len, char *key) {
+    for (int i = 0; i < elements_len; i++) {
+        if (strcmp(elements[i].key, key) == 0) {
+            return i;
+        }
+    }
+
+    return -1;
+}
+
+UIElement CreateButtonElement(char key[], char label[], int x, int y, int width, int height) {
+    UIButton button = {x, y, width, height};
+    strcpy(button.label, label);
+    UIElement element = {UIT_BUTTON};
+    strcpy(element.key, key);
+    element.element.button = button;
+    return element;
+}
+
+UIElement CreateNumberLabelElement(char *key, char *label, int *value, int x, int y, int width, int height) {
+    UINumberLabel numLabel = {x, y, width, height, value};
+    strcpy(numLabel.label, label);
+    UIElement element = {UIT_NUMLABEL};
+    strcpy(element.key, key);
+    element.element.numLabel = numLabel;
+    return element;
 }
