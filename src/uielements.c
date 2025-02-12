@@ -100,9 +100,18 @@ void DrawScrollSelector(ScrollSelector *s, Font font) {
         FONT_HEIGHT, 0, WHITE);
 }
 
-void ButtonPressed(UIButton button, int mx, int my, void *context) {
-    if (CheckButtonPress(button, mx, my)) {
-        button.callback(context);
+void ButtonPressed(UIButton *button, int mx, int my, void *context) {
+    if (CheckButtonPress(*button, mx, my)) {
+        button->pressed = 1;
+    }
+}
+
+void ButtonReleased(UIButton *button, int mx, int my, void *context) {
+    if (CheckButtonPress(*button, mx, my) && button->pressed) {
+        button->pressed = 0;
+        button->callback(context);
+    } else {
+        button->pressed = 0;
     }
 }
 
@@ -143,7 +152,7 @@ void DrawUIElement(UIElement element, Font font) {
 void CheckUIElementInput(UIElement element, int mx, int my, void *context) {
     switch (element.type) {
         case UIT_BUTTON:
-            ButtonPressed(element.element.button, mx, my, context);
+            ButtonPressed(&element.element.button, mx, my, context);
             break;
         default:
             printf("UI Type not an input.\n");

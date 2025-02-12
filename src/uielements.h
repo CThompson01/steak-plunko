@@ -14,7 +14,8 @@ typedef struct uibutton {
 UIButton CreateButton(char label[], int x, int y, int width, int height);
 void DrawButton(UIButton button, Font font);
 int CheckButtonPress(UIButton button, int mx, int my);
-void ButtonPressed(UIButton button, int mx, int my, void *context);
+void ButtonPressed(UIButton *button, int mx, int my, void *context);
+void ButtonReleased(UIButton *button, int mx, int my, void *context);
 int DefaultButtonCallback();
 
 typedef struct uinumberlabel {

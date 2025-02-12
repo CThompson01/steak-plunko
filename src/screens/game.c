@@ -80,6 +80,7 @@ void draw_zone(int location, int animation_offset, int value) {
 
 typedef struct gamestate {
 	int balance;
+	int paused;
 	PBall **balls_head;
 	PBall **balls_curr;
 	PBall **balls_tail;
@@ -95,16 +96,22 @@ int dropButtonCallback(GameState *gameState) {
 	return 0;
 }
 
+int pauseCloseButtonCallback(GameState *gameState) {
+	printf("Closing Pause Menu\n");
+	gameState->paused = 0;
+	return 0;
+}
+
 enum Screen GameScreen(Font defaultFont) {
 	// Init game screen
 	enum Screen next_screen = CLOSE_GAME;
 	font = defaultFont;
 	unsigned int frame_count = 0;
-	int paused = 0;
 
 	// Initialize game state
 	GameState gameState = {
 		DEFAULT_BALANCE,
+		0,
 		NULL,
 		NULL,
 		NULL
@@ -131,6 +138,7 @@ enum Screen GameScreen(Font defaultFont) {
 	UIButton closeButton = CreateButton("Close",
 		buttonAreaStart + buttonWidth + 5, (modal_padding_y + modal_height) - (50 + 10),
 		buttonWidth, 50);
+	closeButton.callback = &pauseCloseButtonCallback;
 
 	ScrollSelector *aspectRatioSelector = CreateScrollSelector("Aspect Ratio",
 		(char*[]) {"9:16", "3:4"}, 2, width/2, modal_padding_y + 50);
@@ -286,7 +294,7 @@ enum Screen GameScreen(Font defaultFont) {
 		DrawNumberLabel(balanceDisplay, font);
 
 		// Draw Pause Menu
-		if (paused) {
+		if (gameState.paused) {
 			// Draw back drop
 			DrawRectangle(modal_padding_x, modal_padding_y+2,
 				width-(modal_padding_x*2), height-(modal_padding_y*2),
@@ -306,21 +314,30 @@ enum Screen GameScreen(Font defaultFont) {
 		EndDrawing();
 
 		// ********** Input **********
-		if (!paused) {
+		if (!gameState.paused) {
 			if (IsKeyPressed(KEY_ESCAPE)) {
-				paused = 1;
+				gameState.paused = 1;
 				continue;
 			}
 
 			if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
 				int mouseX = GetMouseX();
 				int mouseY = GetMouseY();
-				printf("Mouse Down at (%d, %d)\n", mouseX, mouseY);
-				ButtonPressed(dropButton, mouseX, mouseY, &gameState);
+				printf("Mouse Pressed at (%d, %d)\n", mouseX, mouseY);
+
+				ButtonPressed(&dropButton, mouseX, mouseY, &gameState);
+			}
+
+			if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) {
+				int mouseX = GetMouseX();
+				int mouseY = GetMouseY();
+				printf("Mouse Released at (%d, %d)\n", mouseX, mouseY);
+
+				ButtonReleased(&dropButton, mouseX, mouseY, &gameState);
 			}
 		} else { // Pause Menu
 			if (IsKeyPressed(KEY_ESCAPE)) {
-				paused = 0;
+				gameState.paused = 0;
 				continue;
 			}
 
@@ -343,13 +360,8 @@ enum Screen GameScreen(Font defaultFont) {
 				int mouseY = GetMouseY();
 				printf("Mouse Pressed at (%d, %d)\n", mouseX, mouseY);
 
-				if (CheckButtonPress(applyButton, mouseX, mouseY)) {
-					applyButton.pressed = 1;
-					continue;
-				} else if (CheckButtonPress(closeButton, mouseX, mouseY)) {
-					closeButton.pressed = 1;
-					continue;
-				}
+				ButtonPressed(&applyButton, mouseX, mouseY, &gameState);
+				ButtonPressed(&closeButton, mouseX, mouseY, &gameState);
 			}
 
 			if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) {
@@ -357,13 +369,8 @@ enum Screen GameScreen(Font defaultFont) {
 				int mouseY = GetMouseY();
 				printf("Mouse Released at (%d, %d)\n", mouseX, mouseY);
 
-				if (CheckButtonPress(closeButton, mouseX, mouseY) && closeButton.pressed) {
-					paused = 0;
-				}
-
-				// Unpress all buttons (TODO: find a better way to do this)
-				applyButton.pressed = 0;
-				closeButton.pressed = 0;
+				ButtonReleased(&applyButton, mouseX, mouseY, &gameState);
+				ButtonReleased(&closeButton, mouseX, mouseY, &gameState);
 			}
 		}
 
