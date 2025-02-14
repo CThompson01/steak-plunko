@@ -341,25 +341,12 @@ enum Screen GameScreen(Font defaultFont) {
 				continue;
 			}
 
-			if (IsKeyPressed(KEY_A)) {
-				aspectRatioSelector->selected--;
-				if (aspectRatioSelector->selected < 0) {
-					aspectRatioSelector->selected = aspectRatioSelector->num_options-1;
-				}
-			}
-
-			if (IsKeyPressed(KEY_D)) {
-				aspectRatioSelector->selected++;
-				if (aspectRatioSelector->selected > aspectRatioSelector->num_options-1) {
-					aspectRatioSelector->selected = 0;
-				}
-			}
-
 			if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
 				int mouseX = GetMouseX();
 				int mouseY = GetMouseY();
 				printf("Mouse Pressed at (%d, %d)\n", mouseX, mouseY);
 
+				ScrollSelectorPressed(aspectRatioSelector, mouseX, mouseY);
 				ButtonPressed(&applyButton, mouseX, mouseY, &gameState);
 				ButtonPressed(&closeButton, mouseX, mouseY, &gameState);
 			}
@@ -369,6 +356,7 @@ enum Screen GameScreen(Font defaultFont) {
 				int mouseY = GetMouseY();
 				printf("Mouse Released at (%d, %d)\n", mouseX, mouseY);
 
+				ScrollSelectorReleased(aspectRatioSelector, mouseX, mouseY);
 				ButtonReleased(&applyButton, mouseX, mouseY, &gameState);
 				ButtonReleased(&closeButton, mouseX, mouseY, &gameState);
 			}

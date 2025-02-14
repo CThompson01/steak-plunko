@@ -29,13 +29,41 @@ typedef struct uinumberlabel {
 UINumberLabel CreateNumberLabel(char label[], int *value, int x, int y, int width, int height);
 void DrawNumberLabel(UINumberLabel label, Font font);
 
-enum UIType { UIT_BUTTON, UIT_NUMLABEL };
+typedef struct scrollselector ScrollSelector;
+struct scrollselector { // potential to move this to global later
+    int x;
+    int y;
+    int selected;
+    char label[50];
+
+    int display_y; // Button location stuff
+    int display_width;
+    int display_height;
+    int button_r_x;
+    int button_l_x;
+
+    int left_pressed; // Release button stuff
+    int right_pressed;
+
+    int num_options;
+    char *options[];
+};
+
+ScrollSelector* CreateScrollSelector(char label[], char *list_of_options[], int num_options, int x, int y);
+void DrawScrollSelector(ScrollSelector *s, Font font);
+int ScrollSelectorInput(ScrollSelector *s, int mx, int my);
+void ScrollSelectorPressed(ScrollSelector *s, int mx, int my);
+void ScrollSelectorReleased(ScrollSelector *s, int mx, int my);
+void updateScrollSelectorPositions(ScrollSelector *s, Font font);
+
+enum UIType { UIT_BUTTON, UIT_NUMLABEL, UIT_SCROLLSELECTOR };
 typedef struct uielement {
     enum UIType type;
     char key[25];
     union {
         UIButton button;
         UINumberLabel numLabel;
+        ScrollSelector *scrollSelector;
     }element;
 } UIElement;
 
@@ -44,19 +72,5 @@ void CheckUIElementInput(UIElement element, int mx, int my, void *context);
 int GetIndexOfKey(UIElement *elements, int elements_len, char *key);
 UIElement CreateButtonElement(char key[], char label[], int x, int y, int width, int height);
 UIElement CreateNumberLabelElement(char key[], char label[], int *value, int x, int y, int width, int height);
-
-typedef struct scrollselector ScrollSelector;
-struct scrollselector { // potential to move this to global later
-    int x;
-    int y;
-    int selected;
-    char label[50];
-    int num_options;
-    char *options[];
-};
-
-ScrollSelector* CreateScrollSelector(char label[],
-    char *list_of_options[], int num_options, int x, int y);
-void DrawScrollSelector(ScrollSelector *s, Font font);
 
 #endif

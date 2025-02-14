@@ -11,13 +11,6 @@ UIButton CreateButton(char label[], int x, int y, int width, int height) {
     return button;
 }
 
-// void DrawButton(UIButton button, Font font) {
-//     DrawRectangle(button.x, button.y, button.width, button.height, GRAY);
-//     int textOffset = MeasureTextEx(font, button.label, 28, 0).x/2;
-//     DrawTextEx(font, button.label, (Vector2) {(button.x+(button.width/2))-textOffset, button.y},
-//         28, 0, WHITE);
-// }
-
 void DrawButton(UIButton button, Font font) {
     const int offset = 2;
     if (!button.pressed) {
@@ -39,65 +32,6 @@ int CheckButtonPress(UIButton button, int mx, int my) {
     int yDiff = my - button.y;
     return (xDiff < button.width) && (yDiff < button.height) &&
         (xDiff > 0) && (yDiff > 0);
-}
-
-ScrollSelector* CreateScrollSelector(char label[], char *list_of_options[], int num_options, int x, int y) {
-    ScrollSelector *scroll_selector = malloc(sizeof(ScrollSelector) + (num_options*sizeof(*scroll_selector->options)));
-    
-    scroll_selector->num_options = num_options;
-    scroll_selector->selected = 0;
-    scroll_selector->x = x;
-    scroll_selector->y = y;
-    strcpy(scroll_selector->label, label);
-    
-    for (int i = 0; i < num_options; i++) {
-        scroll_selector->options[i] = list_of_options[i];
-    }
-
-    return scroll_selector;
-}
-
-// X position is centered, Y position is top
-void DrawScrollSelector(ScrollSelector *s, Font font) {
-    const unsigned int FONT_HEIGHT = 20;
-    const unsigned int X_PADDING = 8;
-    const unsigned int Y_PADDING = 4;
-
-    // Draw the label
-    int label_offset = MeasureTextEx(font, s->label, FONT_HEIGHT, 0).x/2;
-    DrawTextEx(font, s->label, (Vector2) {s->x-label_offset, s->y}, FONT_HEIGHT, 0, WHITE);
-
-    // Draw the selected option
-    int tb_y = s->y + FONT_HEIGHT + Y_PADDING;
-    int tb_width = MeasureTextEx(font, s->options[s->selected], FONT_HEIGHT, 0).x + (X_PADDING*2);
-    int tb_height = FONT_HEIGHT + (2 * Y_PADDING);
-    DrawRectangle(s->x-(tb_width/2), tb_y,
-        tb_width, tb_height + 2, BLACK); // TODO: remove double drawing
-    DrawRectangle(s->x-(tb_width/2), tb_y,
-        tb_width, tb_height, DARKBLUE);
-    DrawTextEx(font, s->options[s->selected],
-        (Vector2) {(s->x + X_PADDING) - (tb_width/2), tb_y + Y_PADDING},
-        FONT_HEIGHT, 0, WHITE);
-
-    // Draw the right button
-    int tb_x_r = s->x + (tb_width/2) + (X_PADDING/2);
-    DrawRectangle(tb_x_r, tb_y,
-        tb_height, tb_height + 2, BLACK); // TODO: remove double drawing
-    DrawRectangle(tb_x_r, tb_y,
-        tb_height, tb_height, DARKBLUE);
-    DrawTextEx(font, ">",
-        (Vector2) {tb_x_r + X_PADDING, tb_y + Y_PADDING},
-        FONT_HEIGHT, 0, WHITE);
-
-    // Draw the left button
-    int tb_x_l = s->x - ((tb_width/2) + (X_PADDING/2) + tb_height);
-    DrawRectangle(tb_x_l, tb_y,
-        tb_height, tb_height + 2, BLACK); // TODO: remove double drawing
-    DrawRectangle(tb_x_l, tb_y,
-        tb_height, tb_height, DARKBLUE);
-    DrawTextEx(font, "<",
-        (Vector2) {tb_x_l + X_PADDING, tb_y + Y_PADDING},
-        FONT_HEIGHT, 0, WHITE);
 }
 
 void ButtonPressed(UIButton *button, int mx, int my, void *context) {
@@ -135,6 +69,176 @@ void DrawNumberLabel(UINumberLabel numLabel, Font font) {
         28, 0, WHITE);
 }
 
+ScrollSelector* CreateScrollSelector(char label[], char *list_of_options[], int num_options, int x, int y) {
+    ScrollSelector *scroll_selector = malloc(sizeof(ScrollSelector) + (num_options*sizeof(*scroll_selector->options)));
+    
+    scroll_selector->num_options = num_options;
+    scroll_selector->selected = 0;
+    scroll_selector->x = x;
+    scroll_selector->y = y;
+    strcpy(scroll_selector->label, label);
+    
+    for (int i = 0; i < num_options; i++) {
+        scroll_selector->options[i] = list_of_options[i];
+    }
+
+    // Default values
+    scroll_selector->display_y = -1;
+    scroll_selector->display_width = -1;
+    scroll_selector->display_height = -1;
+    scroll_selector->button_r_x = -1;
+    scroll_selector->button_l_x = -1;
+    scroll_selector->left_pressed = 0;
+    scroll_selector->right_pressed = 0;
+
+    return scroll_selector;
+}
+
+// X position is centered, Y position is top
+void DrawScrollSelector(ScrollSelector *s, Font font) {
+    if (s->button_r_x == -1) {
+        printf("Updating scroll selector.\n");
+        updateScrollSelectorPositions(s, font);
+    }
+
+    const unsigned int FONT_HEIGHT = 20;
+    const unsigned int X_PADDING = 8;
+    const unsigned int Y_PADDING = 4;
+
+    // Draw the label
+    int label_offset = MeasureTextEx(font, s->label, FONT_HEIGHT, 0).x/2;
+    DrawTextEx(font, s->label, (Vector2) {s->x-label_offset, s->y}, FONT_HEIGHT, 0, WHITE);
+
+    // Draw the selected option
+    DrawRectangle(s->x-(s->display_width/2), s->display_y,
+        s->display_width, s->display_height + 2, BLACK); // TODO: remove double drawing
+    DrawRectangle(s->x-(s->display_width/2), s->display_y,
+        s->display_width, s->display_height, DARKBLUE);
+    DrawTextEx(font, s->options[s->selected],
+        (Vector2) {(s->x + X_PADDING) - (s->display_width/2), s->display_y + Y_PADDING},
+        FONT_HEIGHT, 0, WHITE);
+
+    // Draw the left button
+    if (s->left_pressed) {
+        DrawRectangle(s->button_l_x, s->display_y + 2,
+            s->display_height, s->display_height, DARKBLUE);
+        DrawTextEx(font, "<",
+            (Vector2) {s->button_l_x + X_PADDING, s->display_y + Y_PADDING + 2},
+            FONT_HEIGHT, 0, WHITE);
+    } else {
+        DrawRectangle(s->button_l_x, s->display_y,
+            s->display_height, s->display_height + 2, BLACK); // TODO: remove double drawing
+        DrawRectangle(s->button_l_x, s->display_y,
+            s->display_height, s->display_height, DARKBLUE);
+        DrawTextEx(font, "<",
+            (Vector2) {s->button_l_x + X_PADDING, s->display_y + Y_PADDING},
+            FONT_HEIGHT, 0, WHITE);
+    }
+
+    // Draw the right button
+    if (s->right_pressed) {
+        DrawRectangle(s->button_r_x, s->display_y + 2,
+            s->display_height, s->display_height, DARKBLUE);
+        DrawTextEx(font, ">",
+            (Vector2) {s->button_r_x + X_PADDING, s->display_y + Y_PADDING + 2},
+            FONT_HEIGHT, 0, WHITE);
+    } else {
+        DrawRectangle(s->button_r_x, s->display_y,
+            s->display_height, s->display_height + 2, BLACK); // TODO: remove double drawing
+        DrawRectangle(s->button_r_x, s->display_y,
+            s->display_height, s->display_height, DARKBLUE);
+        DrawTextEx(font, ">",
+            (Vector2) {s->button_r_x + X_PADDING, s->display_y + Y_PADDING},
+            FONT_HEIGHT, 0, WHITE);
+    }
+}
+
+// TODO: remove dev comments'
+// Functions similar to strcmp
+// Returns 0 if neither are receiving input
+// Returns greater than zero if right is receiving input
+// Returns less than zero if left is receiving input
+int ScrollSelectorInput(ScrollSelector *s, int mx, int my) {
+    if (s->button_r_x == -1) {
+        printf("Update scroll selector before checking input.\n");
+        return 0;
+    }
+
+    // readability
+    int bx_l = s->button_l_x;
+    int by_l = s->display_y;
+    int bx_r = s->button_r_x;
+    int by_r = s->display_y;
+    int b_wh = s->display_height; // combined width and height
+
+    // check left button
+    int xDiff_l = mx - bx_l;
+    int yDiff_l = my - by_l;
+    if ((xDiff_l < b_wh) && (yDiff_l < b_wh) &&
+        (xDiff_l > 0) && (yDiff_l > 0)) {
+        return -1;
+    }
+
+    // check right button
+    int xDiff_r = mx - bx_r;
+    int yDiff_r = my - by_r;
+    if ((xDiff_r < b_wh) && (yDiff_r < b_wh) &&
+        (xDiff_r > 0) && (yDiff_r > 0)) {
+        return 1;
+    }
+
+    return 0;
+}
+
+void ScrollSelectorPressed(ScrollSelector *s, int mx, int my) {
+    int scroll_input = ScrollSelectorInput(s, mx, my);
+
+    if (scroll_input < 0) { // check left button
+        s->left_pressed = 1;
+    } else if (scroll_input > 0) { // check right button
+        s->right_pressed = 1;
+    }
+}
+
+void ScrollSelectorReleased(ScrollSelector *s, int mx, int my) {
+    int scroll_input = ScrollSelectorInput(s, mx, my);
+
+    if (scroll_input < 0 && s->left_pressed) { // check left button
+        s->selected--;
+        if (s->selected < 0) {
+            s->selected = s->num_options-1;
+        }
+        s->button_r_x = -1;
+    } else if (scroll_input > 0 && s->right_pressed) { // check right button
+        s->selected++;
+        if (s->selected > s->num_options-1) {
+            s->selected = 0;
+        }
+        s->button_r_x = -1;
+    }
+
+    s->left_pressed = 0;
+    s->right_pressed = 0;
+}
+
+void updateScrollSelectorPositions(ScrollSelector *s, Font font) {
+    const unsigned int FONT_HEIGHT = 20;
+    const unsigned int X_PADDING = 8;
+    const unsigned int Y_PADDING = 4;
+
+    int tb_y = s->y + FONT_HEIGHT + Y_PADDING;
+    int tb_width = MeasureTextEx(font, s->options[s->selected], FONT_HEIGHT, 0).x + (X_PADDING*2);
+    int tb_height = FONT_HEIGHT + (2 * Y_PADDING);
+    int tb_x_r = s->x + (tb_width/2) + (X_PADDING/2);
+    int tb_x_l = s->x - ((tb_width/2) + (X_PADDING/2) + tb_height);
+
+    s->display_y = tb_y;
+    s->display_width = tb_width;
+    s->display_height = tb_height;
+    s->button_r_x = tb_x_r;
+    s->button_l_x = tb_x_l;
+}
+
 void DrawUIElement(UIElement element, Font font) {
     switch (element.type) {
         case UIT_BUTTON:
@@ -142,6 +246,9 @@ void DrawUIElement(UIElement element, Font font) {
             break;
         case UIT_NUMLABEL:
             DrawNumberLabel(element.element.numLabel, font);
+            break;
+        case UIT_SCROLLSELECTOR:
+            DrawScrollSelector(element.element.scrollSelector, font);
             break;
         default:
             printf("UI Type not found.\n");
@@ -153,6 +260,9 @@ void CheckUIElementInput(UIElement element, int mx, int my, void *context) {
     switch (element.type) {
         case UIT_BUTTON:
             ButtonPressed(&element.element.button, mx, my, context);
+            break;
+        case UIT_SCROLLSELECTOR:
+            ScrollSelectorInput(element.element.scrollSelector, mx, my);
             break;
         default:
             printf("UI Type not an input.\n");
