@@ -140,8 +140,15 @@ enum Screen GameScreen(Font defaultFont) {
 		buttonWidth, 50);
 	closeButton.callback = &pauseCloseButtonCallback;
 
-	ScrollSelector *aspectRatioSelector = CreateScrollSelector("Aspect Ratio",
-		(char*[]) {"9:16", "3:4"}, 2, width/2, modal_padding_y + 50);
+	int numModalElements = 3;
+	UIElement modalElements[] = {
+		CreateScrollSelectorElement("aspect_selector", "Aspect Ratio",
+			(char*[]) {"9:16", "3:4"}, 2, width/2, modal_padding_y + 50),
+		CreateScrollSelectorElement("resolution_selector", "Resolution",
+			(char*[]) {"1920x1080", "1070x1070", "BloodXThirsty"}, 3, width/2, modal_padding_y + 108),
+		CreateScrollSelectorElement("fullscreen_selector", "Fullscreen",
+			(char*[]) {"no", "yes"}, 2, width/2, modal_padding_y + 166)
+	};
 
 	// Generate game objects
 	// Generate pegs
@@ -304,7 +311,9 @@ enum Screen GameScreen(Font defaultFont) {
 				BLUE);
 
 			// Draw aspect buttons
-			DrawScrollSelector(aspectRatioSelector, font);
+			for (int modal_i = 0; modal_i < numModalElements; modal_i++) {
+				DrawUIElement(modalElements[modal_i], font);
+			}
 
 			// Draw apply buttons
 			DrawButton(applyButton, font);
@@ -346,7 +355,9 @@ enum Screen GameScreen(Font defaultFont) {
 				int mouseY = GetMouseY();
 				printf("Mouse Pressed at (%d, %d)\n", mouseX, mouseY);
 
-				ScrollSelectorPressed(aspectRatioSelector, mouseX, mouseY);
+				for (int modal_i = 0; modal_i < numModalElements; modal_i++) {
+					CheckUIElementPressed(modalElements[modal_i], mouseX, mouseY, &gameState);
+				}
 				ButtonPressed(&applyButton, mouseX, mouseY, &gameState);
 				ButtonPressed(&closeButton, mouseX, mouseY, &gameState);
 			}
@@ -356,7 +367,9 @@ enum Screen GameScreen(Font defaultFont) {
 				int mouseY = GetMouseY();
 				printf("Mouse Released at (%d, %d)\n", mouseX, mouseY);
 
-				ScrollSelectorReleased(aspectRatioSelector, mouseX, mouseY);
+				for (int modal_i = 0; modal_i < numModalElements; modal_i++) {
+					CheckUIElementReleased(modalElements[modal_i], mouseX, mouseY, &gameState);
+				}
 				ButtonReleased(&applyButton, mouseX, mouseY, &gameState);
 				ButtonReleased(&closeButton, mouseX, mouseY, &gameState);
 			}

@@ -4,6 +4,7 @@
 #include "raylib.h"
 #include "uielements.h"
 
+/***** Buttons *****/
 UIButton CreateButton(char label[], int x, int y, int width, int height) {
     UIButton button = {x, y, width, height, &DefaultButtonCallback};
     strcpy(button.label, label);
@@ -54,6 +55,7 @@ int DefaultButtonCallback() {
     return 0;
 }
 
+/***** Number Label *****/
 UINumberLabel CreateNumberLabel(char label[], int *value, int x, int y, int width, int height) {
     UINumberLabel numLabel = {x, y, width, height, value};
     strcpy(numLabel.label, label);
@@ -69,6 +71,7 @@ void DrawNumberLabel(UINumberLabel numLabel, Font font) {
         28, 0, WHITE);
 }
 
+/***** Scroll Selector *****/
 ScrollSelector* CreateScrollSelector(char label[], char *list_of_options[], int num_options, int x, int y) {
     ScrollSelector *scroll_selector = malloc(sizeof(ScrollSelector) + (num_options*sizeof(*scroll_selector->options)));
     
@@ -153,7 +156,7 @@ void DrawScrollSelector(ScrollSelector *s, Font font) {
     }
 }
 
-// TODO: remove dev comments'
+// TODO: remove dev comments
 // Functions similar to strcmp
 // Returns 0 if neither are receiving input
 // Returns greater than zero if right is receiving input
@@ -239,6 +242,7 @@ void updateScrollSelectorPositions(ScrollSelector *s, Font font) {
     s->button_l_x = tb_x_l;
 }
 
+/***** UI ELEMENT *****/
 void DrawUIElement(UIElement element, Font font) {
     switch (element.type) {
         case UIT_BUTTON:
@@ -256,13 +260,27 @@ void DrawUIElement(UIElement element, Font font) {
     }
 }
 
-void CheckUIElementInput(UIElement element, int mx, int my, void *context) {
+void CheckUIElementPressed(UIElement element, int mx, int my, void *context) {
     switch (element.type) {
         case UIT_BUTTON:
             ButtonPressed(&element.element.button, mx, my, context);
             break;
         case UIT_SCROLLSELECTOR:
-            ScrollSelectorInput(element.element.scrollSelector, mx, my);
+            ScrollSelectorPressed(element.element.scrollSelector, mx, my);
+            break;
+        default:
+            printf("UI Type not an input.\n");
+            break;
+    }
+}
+
+void CheckUIElementReleased(UIElement element, int mx, int my, void *context) {
+    switch (element.type) {
+        case UIT_BUTTON:
+            ButtonReleased(&element.element.button, mx, my, context);
+            break;
+        case UIT_SCROLLSELECTOR:
+            ScrollSelectorReleased(element.element.scrollSelector, mx, my);
             break;
         default:
             printf("UI Type not an input.\n");
@@ -280,6 +298,27 @@ int GetIndexOfKey(UIElement *elements, int elements_len, char *key) {
     return -1;
 }
 
+void UIElementUpdatePosition(UIElement element, int new_x, int new_y) {
+    switch (element.type) {
+        case UIT_BUTTON:
+            element.element.button.x = new_x;
+            element.element.button.y = new_y;
+            break;
+        case UIT_NUMLABEL:
+            element.element.numLabel.x = new_x;
+            element.element.numLabel.y = new_y;
+            break;
+        case UIT_SCROLLSELECTOR:
+            element.element.scrollSelector->button_r_x = -1;
+            element.element.scrollSelector->x = new_x;
+            element.element.scrollSelector->y = new_y;
+            break;
+        default:
+            printf("Could not find UI Type of %d.\n", element.type);
+            break;
+    }
+}
+
 UIElement CreateButtonElement(char key[], char label[], int x, int y, int width, int height) {
     UIButton button = {x, y, width, height};
     strcpy(button.label, label);
@@ -295,5 +334,13 @@ UIElement CreateNumberLabelElement(char *key, char *label, int *value, int x, in
     UIElement element = {UIT_NUMLABEL};
     strcpy(element.key, key);
     element.element.numLabel = numLabel;
+    return element;
+}
+
+UIElement CreateScrollSelectorElement(char key[], char label[], char *list_of_options[], int num_options, int x, int y) {
+    ScrollSelector *scrollSelector = CreateScrollSelector(label, list_of_options, num_options, x, y);
+    UIElement element = {UIT_SCROLLSELECTOR};
+    strcpy(element.key, key);
+    element.element.scrollSelector = scrollSelector;
     return element;
 }

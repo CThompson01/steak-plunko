@@ -64,13 +64,16 @@ typedef struct uielement {
         UIButton button;
         UINumberLabel numLabel;
         ScrollSelector *scrollSelector;
-    }element;
+    } element;
 } UIElement;
 
 void DrawUIElement(UIElement element, Font font);
-void CheckUIElementInput(UIElement element, int mx, int my, void *context);
+void CheckUIElementPressed(UIElement element, int mx, int my, void *context);
+void CheckUIElementReleased(UIElement element, int mx, int my, void *context);
 int GetIndexOfKey(UIElement *elements, int elements_len, char *key);
+void UIElementUpdatePosition(UIElement element, int new_x, int new_y);
 UIElement CreateButtonElement(char key[], char label[], int x, int y, int width, int height);
 UIElement CreateNumberLabelElement(char key[], char label[], int *value, int x, int y, int width, int height);
+UIElement CreateScrollSelectorElement(char key[], char label[], char *list_of_options[], int num_options, int x, int y);
 
 #endif
