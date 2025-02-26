@@ -14,11 +14,11 @@ windows : build/plinko.exe
 
 build/plinko : src/plinko.c src/global.c $(screens) $(etc)
 	mkdir -p build
-	gcc src/plinko.c src/global.c $(screens) $(etc) $(ubuntu-args) -o build/plinko
+	gcc -w src/plinko.c src/global.c $(screens) $(etc) $(ubuntu-args) -o build/plinko
 
 build/plinko.exe : src/plinko.c src/global.c $(screens) $(etc)
 	mkdir -p build
-	x86_64-w64-mingw32-gcc src/plinko.c src/global.c $(screens) $(etc) $(win-args) -o build/plinko.exe
+	x86_64-w64-mingw32-gcc -w src/plinko.c src/global.c $(screens) $(etc) $(win-args) -o build/plinko.exe
 
 build-release : build/release/plinko.exe
 

@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+#include <string.h>
 #include "raylib.h"
 #include "../uielements.h"
 #include "../global.h"
@@ -78,12 +79,19 @@ void draw_zone(int location, int animation_offset, int value) {
 		21, 0, WHITE);
 }
 
+typedef struct gameSettings {
+	char aspectRatio[50];
+	char resolution[50];
+	ScrollSelector *resolutionSelector;
+} GameSettings;
+
 typedef struct gamestate {
 	int balance;
 	int paused;
 	PBall **balls_head;
 	PBall **balls_curr;
 	PBall **balls_tail;
+	GameSettings settings;
 } GameState;
 
 int dropButtonCallback(GameState *gameState) {
@@ -96,9 +104,48 @@ int dropButtonCallback(GameState *gameState) {
 	return 0;
 }
 
+int pauseApplyButtonCallback(GameState *gameState) {
+	printf("Updating window size.\n");
+	if (strcmp(gameState->settings.resolution, "480x854") == 0) {
+		SetWindowSize(480, 854);
+	} else if (strcmp(gameState->settings.resolution, "854x480") == 0) {
+		SetWindowSize(854, 480);
+	} else if (strcmp(gameState->settings.resolution, "1280x720") == 0) {
+		SetWindowSize(1280, 720);
+	} else if (strcmp(gameState->settings.resolution, "1518x854") == 0) {
+		SetWindowSize(1518, 854);
+	} else if (strcmp(gameState->settings.resolution, "1920x1080") == 0) {
+		SetWindowSize(1920, 1080);
+	}
+	return 0;
+}
+
 int pauseCloseButtonCallback(GameState *gameState) {
-	printf("Closing Pause Menu\n");
+	printf("Closing pause menu.\n");
 	gameState->paused = 0;
+	return 0;
+}
+
+int aspectOnChange(char *selection, GameState *gameState) {
+	strcpy(gameState->settings.aspectRatio, selection);
+	printf("Selection of aspect ratio changed to %s, updating resolution list.\n", selection);
+	if (strcmp(selection, "3:4") == 0) {
+		ChangeScrollSelectorOptions(gameState->settings.resolutionSelector, 
+			(char*[]) {"480x854"}, 1);
+		resolutionOnChange(gameState->settings.resolutionSelector->options[0], gameState);
+		gameState->settings.resolutionSelector->button_r_x = -1;
+	} else if (strcmp(selection, "16:9") == 0) {
+		ChangeScrollSelectorOptions(gameState->settings.resolutionSelector, 
+			(char*[]) {"854x480", "1280x720", "1518x854", "1920x1080"}, 4);
+		resolutionOnChange(gameState->settings.resolutionSelector->options[0], gameState);
+		gameState->settings.resolutionSelector->button_r_x = -1;
+	}
+	return 0;
+}
+
+int resolutionOnChange(char *selection, GameState *gameState) {
+	printf("Updating the resolution in GameState to %s.\n", selection);
+	strcpy(gameState->settings.resolution, selection);
 	return 0;
 }
 
@@ -114,7 +161,12 @@ enum Screen GameScreen(Font defaultFont) {
 		0,
 		NULL,
 		NULL,
-		NULL
+		NULL,
+		{
+			"NULL",
+			"NULL",
+			NULL
+		}
 	};
 
 	// Implement static screen layout values
@@ -138,17 +190,22 @@ enum Screen GameScreen(Font defaultFont) {
 	UIButton closeButton = CreateButton("Close",
 		buttonAreaStart + buttonWidth + 5, (modal_padding_y + modal_height) - (50 + 10),
 		buttonWidth, 50);
+	applyButton.callback = &pauseApplyButtonCallback;
 	closeButton.callback = &pauseCloseButtonCallback;
 
 	int numModalElements = 3;
 	UIElement modalElements[] = {
 		CreateScrollSelectorElement("aspect_selector", "Aspect Ratio",
-			(char*[]) {"9:16", "3:4"}, 2, width/2, modal_padding_y + 50),
+			(char*[]) {"16:9", "3:4"}, 2, width/2, modal_padding_y + 50),
 		CreateScrollSelectorElement("resolution_selector", "Resolution",
 			(char*[]) {"1920x1080", "1070x1070", "BloodXThirsty"}, 3, width/2, modal_padding_y + 108),
 		CreateScrollSelectorElement("fullscreen_selector", "Fullscreen",
 			(char*[]) {"no", "yes"}, 2, width/2, modal_padding_y + 166)
 	};
+
+	modalElements[0].element.scrollSelector->OnChange = &aspectOnChange;
+	modalElements[1].element.scrollSelector->OnChange = &resolutionOnChange;
+	gameState.settings.resolutionSelector = modalElements[1].element.scrollSelector;
 
 	// Generate game objects
 	// Generate pegs

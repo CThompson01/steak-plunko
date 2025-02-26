@@ -73,7 +73,7 @@ void DrawNumberLabel(UINumberLabel numLabel, Font font) {
 
 /***** Scroll Selector *****/
 ScrollSelector* CreateScrollSelector(char label[], char *list_of_options[], int num_options, int x, int y) {
-    ScrollSelector *scroll_selector = malloc(sizeof(ScrollSelector) + (num_options*sizeof(*scroll_selector->options)));
+    ScrollSelector *scroll_selector = malloc(sizeof(ScrollSelector) + (num_options*sizeof(char*)));
     
     scroll_selector->num_options = num_options;
     scroll_selector->selected = 0;
@@ -93,6 +93,7 @@ ScrollSelector* CreateScrollSelector(char label[], char *list_of_options[], int 
     scroll_selector->button_l_x = -1;
     scroll_selector->left_pressed = 0;
     scroll_selector->right_pressed = 0;
+    scroll_selector->OnChange = NULL;
 
     return scroll_selector;
 }
@@ -193,7 +194,7 @@ int ScrollSelectorInput(ScrollSelector *s, int mx, int my) {
     return 0;
 }
 
-void ScrollSelectorPressed(ScrollSelector *s, int mx, int my) {
+void ScrollSelectorPressed(ScrollSelector *s, int mx, int my, void *context) {
     int scroll_input = ScrollSelectorInput(s, mx, my);
 
     if (scroll_input < 0) { // check left button
@@ -203,25 +204,44 @@ void ScrollSelectorPressed(ScrollSelector *s, int mx, int my) {
     }
 }
 
-void ScrollSelectorReleased(ScrollSelector *s, int mx, int my) {
+void ScrollSelectorReleased(ScrollSelector *s, int mx, int my, void *context) {
     int scroll_input = ScrollSelectorInput(s, mx, my);
+    int selection_changed = 0; // TODO make more efficient
 
     if (scroll_input < 0 && s->left_pressed) { // check left button
         s->selected--;
         if (s->selected < 0) {
             s->selected = s->num_options-1;
         }
-        s->button_r_x = -1;
+        s->button_r_x = -1; // make sure positions are updated
+        selection_changed = 1;
     } else if (scroll_input > 0 && s->right_pressed) { // check right button
         s->selected++;
         if (s->selected > s->num_options-1) {
             s->selected = 0;
         }
-        s->button_r_x = -1;
+        s->button_r_x = -1; // make sure positions are updated
+        selection_changed = 1;
     }
 
     s->left_pressed = 0;
     s->right_pressed = 0;
+
+    if (s->OnChange != NULL && selection_changed) {
+        s->OnChange(s->options[s->selected], context);
+    }
+}
+
+void ChangeScrollSelectorOptions(ScrollSelector *s, char *list_of_options[], int num_options) {
+    // Resize the Scroll Selector memory to fit the new number of options
+    s = realloc(s, sizeof(ScrollSelector) + (num_options*sizeof(char*)));
+
+    s->num_options = num_options;
+    s->selected = 0;
+
+    for (int i = 0; i < num_options; i++) {
+        s->options[i] = list_of_options[i];
+    }
 }
 
 void updateScrollSelectorPositions(ScrollSelector *s, Font font) {
@@ -266,7 +286,7 @@ void CheckUIElementPressed(UIElement element, int mx, int my, void *context) {
             ButtonPressed(&element.element.button, mx, my, context);
             break;
         case UIT_SCROLLSELECTOR:
-            ScrollSelectorPressed(element.element.scrollSelector, mx, my);
+            ScrollSelectorPressed(element.element.scrollSelector, mx, my, context);
             break;
         default:
             printf("UI Type not an input.\n");
@@ -280,7 +300,7 @@ void CheckUIElementReleased(UIElement element, int mx, int my, void *context) {
             ButtonReleased(&element.element.button, mx, my, context);
             break;
         case UIT_SCROLLSELECTOR:
-            ScrollSelectorReleased(element.element.scrollSelector, mx, my);
+            ScrollSelectorReleased(element.element.scrollSelector, mx, my, context);
             break;
         default:
             printf("UI Type not an input.\n");

@@ -45,6 +45,7 @@ struct scrollselector { // potential to move this to global later
     int left_pressed; // Release button stuff
     int right_pressed;
 
+    int (*OnChange)(char selection[], void*);
     int num_options;
     char *options[];
 };
@@ -52,8 +53,9 @@ struct scrollselector { // potential to move this to global later
 ScrollSelector* CreateScrollSelector(char label[], char *list_of_options[], int num_options, int x, int y);
 void DrawScrollSelector(ScrollSelector *s, Font font);
 int ScrollSelectorInput(ScrollSelector *s, int mx, int my);
-void ScrollSelectorPressed(ScrollSelector *s, int mx, int my);
-void ScrollSelectorReleased(ScrollSelector *s, int mx, int my);
+void ScrollSelectorPressed(ScrollSelector *s, int mx, int my, void *context);
+void ScrollSelectorReleased(ScrollSelector *s, int mx, int my, void *context);
+void ChangeScrollSelectorOptions(ScrollSelector *s, char *list_of_options[], int num_options);
 void updateScrollSelectorPositions(ScrollSelector *s, Font font);
 
 enum UIType { UIT_BUTTON, UIT_NUMLABEL, UIT_SCROLLSELECTOR };
