@@ -85,12 +85,32 @@ typedef struct gameSettings {
 	ScrollSelector *resolutionSelector;
 } GameSettings;
 
+typedef struct gameobjects {
+	int pegs[DEFAULT_PEGS][2];
+	int zone_location[5];
+	int zone_animation_state[5];
+} GameObjects;
+
+typedef struct gameui {
+	UIButton dropButton;
+	UINumberLabel balanceDisplay;
+	UIButton applyButton;
+	UIButton closeButton;
+
+	UIElement aspectSelector;
+	UIElement resolutionSelector;
+	UIElement fullscreenSelector;
+} GameUI;
+
 typedef struct gamestate {
 	int balance;
 	int paused;
+	int zone_width;
 	PBall **balls_head;
 	PBall **balls_curr;
 	PBall **balls_tail;
+	GameUI ui;
+	GameObjects objects;
 	GameSettings settings;
 } GameState;
 
@@ -117,6 +137,9 @@ int pauseApplyButtonCallback(GameState *gameState) {
 	} else if (strcmp(gameState->settings.resolution, "1920x1080") == 0) {
 		SetWindowSize(1920, 1080);
 	}
+
+	resetScreenPositions(gameState);
+
 	return 0;
 }
 
@@ -130,15 +153,15 @@ int aspectOnChange(char *selection, GameState *gameState) {
 	strcpy(gameState->settings.aspectRatio, selection);
 	printf("Selection of aspect ratio changed to %s, updating resolution list.\n", selection);
 	if (strcmp(selection, "3:4") == 0) {
-		ChangeScrollSelectorOptions(gameState->settings.resolutionSelector, 
+		ChangeScrollSelectorOptions(gameState->ui.resolutionSelector.element.scrollSelector, 
 			(char*[]) {"480x854"}, 1);
-		resolutionOnChange(gameState->settings.resolutionSelector->options[0], gameState);
-		gameState->settings.resolutionSelector->button_r_x = -1;
+		resolutionOnChange(gameState->ui.resolutionSelector.element.scrollSelector->options[0], gameState);
+		gameState->ui.resolutionSelector.element.scrollSelector->button_r_x = -1;
 	} else if (strcmp(selection, "16:9") == 0) {
-		ChangeScrollSelectorOptions(gameState->settings.resolutionSelector, 
-			(char*[]) {"854x480", "1280x720", "1518x854", "1920x1080"}, 4);
-		resolutionOnChange(gameState->settings.resolutionSelector->options[0], gameState);
-		gameState->settings.resolutionSelector->button_r_x = -1;
+		ChangeScrollSelectorOptions(gameState->ui.resolutionSelector.element.scrollSelector, 
+			(char*[]) {"1280x720", "1518x854", "1920x1080"}, 3);
+		resolutionOnChange(gameState->ui.resolutionSelector.element.scrollSelector->options[0], gameState);
+		gameState->ui.resolutionSelector.element.scrollSelector->button_r_x = -1;
 	}
 	return 0;
 }
@@ -149,32 +172,21 @@ int resolutionOnChange(char *selection, GameState *gameState) {
 	return 0;
 }
 
-enum Screen GameScreen(Font defaultFont) {
-	// Init game screen
-	enum Screen next_screen = CLOSE_GAME;
-	font = defaultFont;
-	unsigned int frame_count = 0;
+void resetScreenPositions(GameState *gameState) {
+	/***** UI *****/
 
-	// Initialize game state
-	GameState gameState = {
-		DEFAULT_BALANCE,
-		0,
-		NULL,
-		NULL,
-		NULL,
-		{
-			"NULL",
-			"NULL",
-			NULL
-		}
-	};
-
-	// Implement static screen layout values
+	// Init UI
 	height = GetScreenHeight();
 	width = GetScreenWidth();
-	UIButton dropButton = CreateButton("Drop", ((width/3)*2)+10, 10, (width/3)-20, 30);
-	dropButton.callback = &dropButtonCallback;
-	UINumberLabel balanceDisplay = CreateNumberLabel("Balance", &gameState.balance, 10, 10, (width/3)-20, 30);
+	gameState->ui.dropButton.x = ((width/3)*2)+10; // TODO: consolidate this into one function
+	gameState->ui.dropButton.y = 10;
+	gameState->ui.dropButton.width = (width/3)-20;
+	gameState->ui.dropButton.height = 30;
+
+	gameState->ui.balanceDisplay.x = 10; // TODO: consolidate this into one function
+	gameState->ui.balanceDisplay.y = 10;
+	gameState->ui.balanceDisplay.width = (width/3)-20;
+	gameState->ui.balanceDisplay.height = 30;
 
 	// Pause Modal Buttons
 	unsigned int modal_padding_x = width/8;
@@ -184,32 +196,30 @@ enum Screen GameScreen(Font defaultFont) {
 
 	int buttonWidth = (modal_width/4)-5;
 	int buttonAreaStart = modal_padding_x + (modal_width/4);
-	UIButton applyButton = CreateButton("Apply",
-		buttonAreaStart, (modal_padding_y + modal_height) - (50 + 10),
-		buttonWidth, 50);
-	UIButton closeButton = CreateButton("Close",
-		buttonAreaStart + buttonWidth + 5, (modal_padding_y + modal_height) - (50 + 10),
-		buttonWidth, 50);
-	applyButton.callback = &pauseApplyButtonCallback;
-	closeButton.callback = &pauseCloseButtonCallback;
 
-	int numModalElements = 3;
-	UIElement modalElements[] = {
-		CreateScrollSelectorElement("aspect_selector", "Aspect Ratio",
-			(char*[]) {"16:9", "3:4"}, 2, width/2, modal_padding_y + 50),
-		CreateScrollSelectorElement("resolution_selector", "Resolution",
-			(char*[]) {"1920x1080", "1070x1070", "BloodXThirsty"}, 3, width/2, modal_padding_y + 108),
-		CreateScrollSelectorElement("fullscreen_selector", "Fullscreen",
-			(char*[]) {"no", "yes"}, 2, width/2, modal_padding_y + 166)
-	};
+	gameState->ui.applyButton.x = buttonAreaStart; // TODO: consolidate this into one function
+	gameState->ui.applyButton.y = (modal_padding_y + modal_height) - (50 + 10);
+	gameState->ui.applyButton.width = buttonWidth;
+	gameState->ui.applyButton.height = 50;
 
-	modalElements[0].element.scrollSelector->OnChange = &aspectOnChange;
-	modalElements[1].element.scrollSelector->OnChange = &resolutionOnChange;
-	gameState.settings.resolutionSelector = modalElements[1].element.scrollSelector;
+	gameState->ui.closeButton.x = buttonAreaStart + buttonWidth + 5; // TODO: consolidate this into one function
+	gameState->ui.closeButton.y = (modal_padding_y + modal_height) - (50 + 10);
+	gameState->ui.closeButton.width = buttonWidth;
+	gameState->ui.closeButton.height = 50;
 
-	// Generate game objects
-	// Generate pegs
-	int pegs[DEFAULT_PEGS][2] = {0};
+	// Scroll Selectors
+	gameState->ui.aspectSelector.element.scrollSelector->x = width/2;
+	gameState->ui.aspectSelector.element.scrollSelector->y = modal_padding_y + 50;
+	gameState->ui.aspectSelector.element.scrollSelector->button_r_x = -1;
+	gameState->ui.resolutionSelector.element.scrollSelector->x = width/2;
+	gameState->ui.resolutionSelector.element.scrollSelector->y = modal_padding_y + 108;
+	gameState->ui.resolutionSelector.element.scrollSelector->button_r_x = -1;
+	gameState->ui.fullscreenSelector.element.scrollSelector->x = width/2;
+	gameState->ui.fullscreenSelector.element.scrollSelector->y = modal_padding_y + 166;
+	gameState->ui.fullscreenSelector.element.scrollSelector->button_r_x = -1;
+
+	/***** Game Objects *****/
+	// Pegs
 	int num_in_row = 1;
 	int pyramid_start_x = width/2;
 	const int pyramid_offset_x = 75;
@@ -217,8 +227,8 @@ enum Screen GameScreen(Font defaultFont) {
 	const int pyramid_offset_y = 50;
 	for (int i = 0; i < DEFAULT_PEGS; i++) {
 		int row_position = (i+1) - (SumTo(num_in_row) - num_in_row);
-		pegs[i][0] = (pyramid_offset_x * (row_position-1)) + pyramid_start_x;
-		pegs[i][1] = (pyramid_offset_y * num_in_row) + pyramid_start_y;
+		gameState->objects.pegs[i][0] = (pyramid_offset_x * (row_position-1)) + pyramid_start_x;
+		gameState->objects.pegs[i][1] = (pyramid_offset_y * num_in_row) + pyramid_start_y;
 		if ((i+1) == SumTo(num_in_row)) {
 			num_in_row++;
 			pyramid_start_x -= pyramid_offset_x/2;
@@ -227,11 +237,98 @@ enum Screen GameScreen(Font defaultFont) {
 
 	// Generate zones
 	zone_width = (width/5);
-	int zone_location[5] = {0};
-	int zone_animation_state[5] = {0};
+	gameState->zone_width = zone_width;
 	for (int i = 0; i < 5; i++) {
-		zone_location[i] = zone_width * i;
+		gameState->objects.zone_animation_state[i] = 0;
+		gameState->objects.zone_location[i] = zone_width * i;
 	}
+}
+
+void initialize(GameState *gs) {
+	/***** Game Data *****/
+	gs->balance = DEFAULT_BALANCE;
+	gs->paused = 0;
+
+	/***** UI *****/
+	// Init UI
+	height = GetScreenHeight();
+	width = GetScreenWidth();
+	gs->ui.dropButton = CreateButton("Drop", ((width/3)*2)+10, 10, (width/3)-20, 30);
+	gs->ui.dropButton.callback = &dropButtonCallback;
+	gs->ui.balanceDisplay = CreateNumberLabel("Balance", &gs->balance, 10, 10, (width/3)-20, 30);
+
+	// Pause Modal Buttons
+	unsigned int modal_padding_x = width/8;
+	unsigned int modal_padding_y = height/4;
+	unsigned int modal_width = modal_padding_x * 6;
+	unsigned int modal_height = modal_padding_y * 2;
+
+	int buttonWidth = (modal_width/4)-5;
+	int buttonAreaStart = modal_padding_x + (modal_width/4);
+	gs->ui.applyButton = CreateButton("Apply",
+		buttonAreaStart, (modal_padding_y + modal_height) - (50 + 10),
+		buttonWidth, 50);
+	gs->ui.closeButton = CreateButton("Close",
+		buttonAreaStart + buttonWidth + 5, (modal_padding_y + modal_height) - (50 + 10),
+		buttonWidth, 50);
+	gs->ui.applyButton.callback = &pauseApplyButtonCallback;
+	gs->ui.closeButton.callback = &pauseCloseButtonCallback;
+
+	// Settings scroll selectors
+	gs->ui.aspectSelector = CreateScrollSelectorElement("aspect_selector", "Aspect Ratio",
+			(char*[]) {"16:9", "3:4"}, 2, width/2, modal_padding_y + 50);
+	gs->ui.aspectSelector.element.scrollSelector->OnChange = &aspectOnChange;
+	gs->ui.resolutionSelector = CreateScrollSelectorElement("resolution_selector", "Resolution",
+			(char*[]) {"1280x720", "1518x854", "1920x1080"}, 3, width/2, modal_padding_y + 108);
+	gs->ui.resolutionSelector.element.scrollSelector->OnChange = &resolutionOnChange;
+	gs->ui.fullscreenSelector = CreateScrollSelectorElement("fullscreen_selector", "Fullscreen",
+			(char*[]) {"no", "yes"}, 2, width/2, modal_padding_y + 166);
+
+	/***** Game Objects *****/
+	// Pegs
+	int num_in_row = 1;
+	int pyramid_start_x = width/2;
+	const int pyramid_offset_x = 75;
+	const int pyramid_start_y = height/5;
+	const int pyramid_offset_y = 50;
+	for (int i = 0; i < DEFAULT_PEGS; i++) {
+		int row_position = (i+1) - (SumTo(num_in_row) - num_in_row);
+		gs->objects.pegs[i][0] = (pyramid_offset_x * (row_position-1)) + pyramid_start_x;
+		gs->objects.pegs[i][1] = (pyramid_offset_y * num_in_row) + pyramid_start_y;
+		if ((i+1) == SumTo(num_in_row)) {
+			num_in_row++;
+			pyramid_start_x -= pyramid_offset_x/2;
+		}
+	}
+
+	// Generate zones
+	zone_width = (width/5);
+	gs->zone_width = zone_width;
+	for (int i = 0; i < 5; i++) {
+		gs->objects.zone_animation_state[i] = 0;
+		gs->objects.zone_location[i] = zone_width * i;
+	}
+}
+
+enum Screen GameScreen(Font defaultFont) {
+	// Init game screen
+	enum Screen next_screen = CLOSE_GAME;
+	font = defaultFont;
+	unsigned int frame_count = 0;
+
+	// Initialize game state
+	GameState gameState = {0};
+	initialize(&gameState);
+
+	// Group common elements
+	unsigned int modal_padding_x = GetScreenWidth()/8;
+	unsigned int modal_padding_y = GetScreenHeight()/4;
+	int numModalElements = 3;
+	UIElement *modalElements[] = {
+		&gameState.ui.aspectSelector,
+		&gameState.ui.resolutionSelector,
+		&gameState.ui.fullscreenSelector
+	};
 
 	// Generate balls
 	PBall *balls_head = (PBall*) malloc(sizeof(PBall)); // fix this later
@@ -273,19 +370,19 @@ enum Screen GameScreen(Font defaultFont) {
 
 			// Check zone collision
 			if (balls_curr->y > height-25 && balls_curr->y < height) {
-				int raw_zone = ((balls_curr->x/zone_width)+1);
+				int raw_zone = ((balls_curr->x/gameState.zone_width)+1);
 				int zone = abs(raw_zone - 3);
 				remove_ball(&balls_curr, &balls_tail);
 				gameState.balance += zone;
-				zone_animation_state[raw_zone-1] = 1; // start the zone animation
+				gameState.objects.zone_animation_state[raw_zone-1] = 1; // start the zone animation
 				printf("Ball Collided with Zone %d. Paying out %d.\n", raw_zone, zone);
 				continue;
 			}
 
 			// Check peg collision
 			for (int i = 0; i < DEFAULT_PEGS; i++) {
-				int adj = balls_curr->x - pegs[i][0];
-				int opp = balls_curr->y - pegs[i][1];
+				int adj = balls_curr->x - gameState.objects.pegs[i][0];
+				int opp = balls_curr->y - gameState.objects.pegs[i][1];
 				int hyp = sqrt((adj*adj) + (opp*opp));
 				if (hyp < balls_curr->radius + PEG_RADIUS) { // collision
 					if (adj != 0) {
@@ -316,14 +413,14 @@ enum Screen GameScreen(Font defaultFont) {
 
 		// Update zone animations
 		for (int i = 0; i < 5; i++) {
-			if (zone_animation_state[i] <= 0) {
+			if (gameState.objects.zone_animation_state[i] <= 0) {
 				continue;
 			}
 
-			if (zone_animation_state[i] > ZONE_ANIMATION_FRAMES) {
-				zone_animation_state[i] = 0;
+			if (gameState.objects.zone_animation_state[i] > ZONE_ANIMATION_FRAMES) {
+				gameState.objects.zone_animation_state[i] = 0;
 			} else {
-				zone_animation_state[i]++;
+				gameState.objects.zone_animation_state[i]++;
 			}
 		}
 
@@ -332,17 +429,17 @@ enum Screen GameScreen(Font defaultFont) {
 		ClearBackground(DARKBLUE);
 
 		// Draw pegs
-		for (int i = 0; i < sizeof(pegs)/sizeof(pegs[0]); i++) {
-			DrawCircle(pegs[i][0], pegs[i][1], PEG_RADIUS, WHITE);
+		for (int i = 0; i < DEFAULT_PEGS; i++) {
+			DrawCircle(gameState.objects.pegs[i][0], gameState.objects.pegs[i][1], PEG_RADIUS, WHITE);
 		}
 
 		// Draw zones
-		for (int i = 0; i < sizeof(zone_location)/sizeof(zone_location[0]); i++) {
+		for (int i = 0; i < 5; i++) {
 			int zone = abs(i - 2);
-			if (zone_animation_state[i]) {
-				draw_zone(zone_location[i], ZONE_ANIMATION_OFFSET, zone);
+			if (gameState.objects.zone_animation_state[i]) {
+				draw_zone(gameState.objects.zone_location[i], ZONE_ANIMATION_OFFSET, zone);
 			} else {
-				draw_zone(zone_location[i], 0, zone);
+				draw_zone(gameState.objects.zone_location[i], 0, zone);
 			}
 		}
 
@@ -354,8 +451,8 @@ enum Screen GameScreen(Font defaultFont) {
 		}
 
 		// Draw UI
-		DrawButton(dropButton, font);
-		DrawNumberLabel(balanceDisplay, font);
+		DrawButton(gameState.ui.dropButton, font);
+		DrawNumberLabel(gameState.ui.balanceDisplay, font);
 
 		// Draw Pause Menu
 		if (gameState.paused) {
@@ -369,12 +466,12 @@ enum Screen GameScreen(Font defaultFont) {
 
 			// Draw aspect buttons
 			for (int modal_i = 0; modal_i < numModalElements; modal_i++) {
-				DrawUIElement(modalElements[modal_i], font);
+				DrawUIElement(*modalElements[modal_i], font);
 			}
 
 			// Draw apply buttons
-			DrawButton(applyButton, font);
-			DrawButton(closeButton, font);
+			DrawButton(gameState.ui.applyButton, font);
+			DrawButton(gameState.ui.closeButton, font);
 		}
 
 		EndDrawing();
@@ -391,7 +488,7 @@ enum Screen GameScreen(Font defaultFont) {
 				int mouseY = GetMouseY();
 				printf("Mouse Pressed at (%d, %d)\n", mouseX, mouseY);
 
-				ButtonPressed(&dropButton, mouseX, mouseY, &gameState);
+				ButtonPressed(&gameState.ui.dropButton, mouseX, mouseY, &gameState);
 			}
 
 			if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) {
@@ -399,7 +496,7 @@ enum Screen GameScreen(Font defaultFont) {
 				int mouseY = GetMouseY();
 				printf("Mouse Released at (%d, %d)\n", mouseX, mouseY);
 
-				ButtonReleased(&dropButton, mouseX, mouseY, &gameState);
+				ButtonReleased(&gameState.ui.dropButton, mouseX, mouseY, &gameState);
 			}
 		} else { // Pause Menu
 			if (IsKeyPressed(KEY_ESCAPE)) {
@@ -413,10 +510,10 @@ enum Screen GameScreen(Font defaultFont) {
 				printf("Mouse Pressed at (%d, %d)\n", mouseX, mouseY);
 
 				for (int modal_i = 0; modal_i < numModalElements; modal_i++) {
-					CheckUIElementPressed(modalElements[modal_i], mouseX, mouseY, &gameState);
+					CheckUIElementPressed(*modalElements[modal_i], mouseX, mouseY, &gameState);
 				}
-				ButtonPressed(&applyButton, mouseX, mouseY, &gameState);
-				ButtonPressed(&closeButton, mouseX, mouseY, &gameState);
+				ButtonPressed(&gameState.ui.applyButton, mouseX, mouseY, &gameState);
+				ButtonPressed(&gameState.ui.closeButton, mouseX, mouseY, &gameState);
 			}
 
 			if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) {
@@ -425,10 +522,10 @@ enum Screen GameScreen(Font defaultFont) {
 				printf("Mouse Released at (%d, %d)\n", mouseX, mouseY);
 
 				for (int modal_i = 0; modal_i < numModalElements; modal_i++) {
-					CheckUIElementReleased(modalElements[modal_i], mouseX, mouseY, &gameState);
+					CheckUIElementReleased(*modalElements[modal_i], mouseX, mouseY, &gameState);
 				}
-				ButtonReleased(&applyButton, mouseX, mouseY, &gameState);
-				ButtonReleased(&closeButton, mouseX, mouseY, &gameState);
+				ButtonReleased(&gameState.ui.applyButton, mouseX, mouseY, &gameState);
+				ButtonReleased(&gameState.ui.closeButton, mouseX, mouseY, &gameState);
 			}
 		}
 
