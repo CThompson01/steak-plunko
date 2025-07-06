@@ -35,16 +35,16 @@ int CheckButtonPress(UIButton button, int mx, int my) {
         (xDiff > 0) && (yDiff > 0);
 }
 
-void ButtonPressed(UIButton *button, int mx, int my, void *context) {
+void ButtonPressed(UIButton *button, int mx, int my) {
     if (CheckButtonPress(*button, mx, my)) {
         button->pressed = 1;
     }
 }
 
-void ButtonReleased(UIButton *button, int mx, int my, void *context) {
+void ButtonReleased(UIButton *button, int mx, int my) {
     if (CheckButtonPress(*button, mx, my) && button->pressed) {
         button->pressed = 0;
-        button->callback(context);
+        button->callback();
     } else {
         button->pressed = 0;
     }
@@ -194,7 +194,7 @@ int ScrollSelectorInput(ScrollSelector *s, int mx, int my) {
     return 0;
 }
 
-void ScrollSelectorPressed(ScrollSelector *s, int mx, int my, void *context) {
+void ScrollSelectorPressed(ScrollSelector *s, int mx, int my) {
     int scroll_input = ScrollSelectorInput(s, mx, my);
 
     if (scroll_input < 0) { // check left button
@@ -204,7 +204,7 @@ void ScrollSelectorPressed(ScrollSelector *s, int mx, int my, void *context) {
     }
 }
 
-void ScrollSelectorReleased(ScrollSelector *s, int mx, int my, void *context) {
+void ScrollSelectorReleased(ScrollSelector *s, int mx, int my) {
     int scroll_input = ScrollSelectorInput(s, mx, my);
     int selection_changed = 0; // TODO make more efficient
 
@@ -228,7 +228,7 @@ void ScrollSelectorReleased(ScrollSelector *s, int mx, int my, void *context) {
     s->right_pressed = 0;
 
     if (s->OnChange != NULL && selection_changed) {
-        s->OnChange(s->options[s->selected], context);
+        s->OnChange(s->options[s->selected]);
     }
 }
 
@@ -280,13 +280,13 @@ void DrawUIElement(UIElement element, Font font) {
     }
 }
 
-void CheckUIElementPressed(UIElement element, int mx, int my, void *context) {
+void CheckUIElementPressed(UIElement element, int mx, int my) {
     switch (element.type) {
         case UIT_BUTTON:
-            ButtonPressed(&element.element.button, mx, my, context);
+            ButtonPressed(&element.element.button, mx, my);
             break;
         case UIT_SCROLLSELECTOR:
-            ScrollSelectorPressed(element.element.scrollSelector, mx, my, context);
+            ScrollSelectorPressed(element.element.scrollSelector, mx, my);
             break;
         default:
             printf("UI Type not an input.\n");
@@ -294,13 +294,13 @@ void CheckUIElementPressed(UIElement element, int mx, int my, void *context) {
     }
 }
 
-void CheckUIElementReleased(UIElement element, int mx, int my, void *context) {
+void CheckUIElementReleased(UIElement element, int mx, int my) {
     switch (element.type) {
         case UIT_BUTTON:
-            ButtonReleased(&element.element.button, mx, my, context);
+            ButtonReleased(&element.element.button, mx, my);
             break;
         case UIT_SCROLLSELECTOR:
-            ScrollSelectorReleased(element.element.scrollSelector, mx, my, context);
+            ScrollSelectorReleased(element.element.scrollSelector, mx, my);
             break;
         default:
             printf("UI Type not an input.\n");

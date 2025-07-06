@@ -114,63 +114,10 @@ typedef struct gamestate {
 	GameSettings settings;
 } GameState;
 
-int dropButtonCallback(GameState *gameState) {
-	printf("Balance Value: %d\n", gameState->balance);
-	if (gameState->balance > 0) {
-		printf("Generating Ball\n");
-		generate_ball((gameState->balls_tail));
-		gameState->balance -= 1;
-	}
-	return 0;
-}
-
-int pauseApplyButtonCallback(GameState *gameState) {
-	printf("Updating window size.\n");
-	if (strcmp(gameState->settings.resolution, "480x854") == 0) {
-		SetWindowSize(480, 854);
-	} else if (strcmp(gameState->settings.resolution, "854x480") == 0) {
-		SetWindowSize(854, 480);
-	} else if (strcmp(gameState->settings.resolution, "1280x720") == 0) {
-		SetWindowSize(1280, 720);
-	} else if (strcmp(gameState->settings.resolution, "1518x854") == 0) {
-		SetWindowSize(1518, 854);
-	} else if (strcmp(gameState->settings.resolution, "1920x1080") == 0) {
-		SetWindowSize(1920, 1080);
-	}
-
-	resetScreenPositions(gameState);
-
-	return 0;
-}
-
-int pauseCloseButtonCallback(GameState *gameState) {
-	printf("Closing pause menu.\n");
-	gameState->paused = 0;
-	return 0;
-}
-
-int aspectOnChange(char *selection, GameState *gameState) {
-	strcpy(gameState->settings.aspectRatio, selection);
-	printf("Selection of aspect ratio changed to %s, updating resolution list.\n", selection);
-	if (strcmp(selection, "3:4") == 0) {
-		ChangeScrollSelectorOptions(gameState->ui.resolutionSelector.element.scrollSelector, 
-			(char*[]) {"480x854"}, 1);
-		resolutionOnChange(gameState->ui.resolutionSelector.element.scrollSelector->options[0], gameState);
-		gameState->ui.resolutionSelector.element.scrollSelector->button_r_x = -1;
-	} else if (strcmp(selection, "16:9") == 0) {
-		ChangeScrollSelectorOptions(gameState->ui.resolutionSelector.element.scrollSelector, 
-			(char*[]) {"1280x720", "1518x854", "1920x1080"}, 3);
-		resolutionOnChange(gameState->ui.resolutionSelector.element.scrollSelector->options[0], gameState);
-		gameState->ui.resolutionSelector.element.scrollSelector->button_r_x = -1;
-	}
-	return 0;
-}
-
-int resolutionOnChange(char *selection, GameState *gameState) {
-	printf("Updating the resolution in GameState to %s.\n", selection);
-	strcpy(gameState->settings.resolution, selection);
-	return 0;
-}
+// Init global Game State, this might need to be localized later and probably should be but
+// for now this is the best way I can get this to work with my custom UI Library without breaking larger
+// programming conventions. Make it first, make it good later
+GameState *g_gameState;
 
 void resetScreenPositions(GameState *gameState) {
 	/***** UI *****/
@@ -242,6 +189,64 @@ void resetScreenPositions(GameState *gameState) {
 		gameState->objects.zone_animation_state[i] = 0;
 		gameState->objects.zone_location[i] = zone_width * i;
 	}
+}
+
+int dropButtonCallback() {
+	printf("Balance Value: %d\n", g_gameState->balance);
+	if (g_gameState->balance > 0) {
+		printf("Generating Ball\n");
+		generate_ball((g_gameState->balls_tail));
+		g_gameState->balance -= 1;
+	}
+	return 0;
+}
+
+int pauseApplyButtonCallback() {
+	printf("Updating window size.\n");
+	if (strcmp(g_gameState->settings.resolution, "480x854") == 0) {
+		SetWindowSize(480, 854);
+	} else if (strcmp(g_gameState->settings.resolution, "854x480") == 0) {
+		SetWindowSize(854, 480);
+	} else if (strcmp(g_gameState->settings.resolution, "1280x720") == 0) {
+		SetWindowSize(1280, 720);
+	} else if (strcmp(g_gameState->settings.resolution, "1518x854") == 0) {
+		SetWindowSize(1518, 854);
+	} else if (strcmp(g_gameState->settings.resolution, "1920x1080") == 0) {
+		SetWindowSize(1920, 1080);
+	}
+
+	resetScreenPositions(g_gameState);
+
+	return 0;
+}
+
+int pauseCloseButtonCallback() {
+	printf("Closing pause menu.\n");
+	g_gameState->paused = 0;
+	return 0;
+}
+
+int resolutionOnChange(char *selection) {
+	printf("Updating the resolution in GameState to %s.\n", selection);
+	strcpy(g_gameState->settings.resolution, selection);
+	return 0;
+}
+
+int aspectOnChange(char *selection) {
+	strcpy(g_gameState->settings.aspectRatio, selection);
+	printf("Selection of aspect ratio changed to %s, updating resolution list.\n", selection);
+	if (strcmp(selection, "3:4") == 0) {
+		ChangeScrollSelectorOptions(g_gameState->ui.resolutionSelector.element.scrollSelector, 
+			(char*[]) {"480x854"}, 1);
+		resolutionOnChange(g_gameState->ui.resolutionSelector.element.scrollSelector->options[0]);
+		g_gameState->ui.resolutionSelector.element.scrollSelector->button_r_x = -1;
+	} else if (strcmp(selection, "16:9") == 0) {
+		ChangeScrollSelectorOptions(g_gameState->ui.resolutionSelector.element.scrollSelector, 
+			(char*[]) {"1280x720", "1518x854", "1920x1080"}, 3);
+		resolutionOnChange(g_gameState->ui.resolutionSelector.element.scrollSelector->options[0]);
+		g_gameState->ui.resolutionSelector.element.scrollSelector->button_r_x = -1;
+	}
+	return 0;
 }
 
 void initialize(GameState *gs) {
@@ -318,6 +323,7 @@ enum Screen GameScreen(Font defaultFont) {
 
 	// Initialize game state
 	GameState gameState = {0};
+	g_gameState = &gameState;
 	initialize(&gameState);
 
 	// Group common elements
@@ -488,7 +494,7 @@ enum Screen GameScreen(Font defaultFont) {
 				int mouseY = GetMouseY();
 				printf("Mouse Pressed at (%d, %d)\n", mouseX, mouseY);
 
-				ButtonPressed(&gameState.ui.dropButton, mouseX, mouseY, &gameState);
+				ButtonPressed(&gameState.ui.dropButton, mouseX, mouseY);
 			}
 
 			if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) {
@@ -496,7 +502,7 @@ enum Screen GameScreen(Font defaultFont) {
 				int mouseY = GetMouseY();
 				printf("Mouse Released at (%d, %d)\n", mouseX, mouseY);
 
-				ButtonReleased(&gameState.ui.dropButton, mouseX, mouseY, &gameState);
+				ButtonReleased(&gameState.ui.dropButton, mouseX, mouseY);
 			}
 		} else { // Pause Menu
 			if (IsKeyPressed(KEY_ESCAPE)) {
@@ -510,10 +516,10 @@ enum Screen GameScreen(Font defaultFont) {
 				printf("Mouse Pressed at (%d, %d)\n", mouseX, mouseY);
 
 				for (int modal_i = 0; modal_i < numModalElements; modal_i++) {
-					CheckUIElementPressed(*modalElements[modal_i], mouseX, mouseY, &gameState);
+					CheckUIElementPressed(*modalElements[modal_i], mouseX, mouseY);
 				}
-				ButtonPressed(&gameState.ui.applyButton, mouseX, mouseY, &gameState);
-				ButtonPressed(&gameState.ui.closeButton, mouseX, mouseY, &gameState);
+				ButtonPressed(&gameState.ui.applyButton, mouseX, mouseY);
+				ButtonPressed(&gameState.ui.closeButton, mouseX, mouseY);
 			}
 
 			if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) {
@@ -522,10 +528,10 @@ enum Screen GameScreen(Font defaultFont) {
 				printf("Mouse Released at (%d, %d)\n", mouseX, mouseY);
 
 				for (int modal_i = 0; modal_i < numModalElements; modal_i++) {
-					CheckUIElementReleased(*modalElements[modal_i], mouseX, mouseY, &gameState);
+					CheckUIElementReleased(*modalElements[modal_i], mouseX, mouseY);
 				}
-				ButtonReleased(&gameState.ui.applyButton, mouseX, mouseY, &gameState);
-				ButtonReleased(&gameState.ui.closeButton, mouseX, mouseY, &gameState);
+				ButtonReleased(&gameState.ui.applyButton, mouseX, mouseY);
+				ButtonReleased(&gameState.ui.closeButton, mouseX, mouseY);
 			}
 		}
 

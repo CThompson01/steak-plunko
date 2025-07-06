@@ -6,7 +6,7 @@ typedef struct uibutton {
     int y;
     int width;
     int height;
-    int (*callback)(void*);
+    int (*callback)();
     char label[50];
     int pressed;
 } UIButton;
@@ -14,8 +14,8 @@ typedef struct uibutton {
 UIButton CreateButton(char label[], int x, int y, int width, int height);
 void DrawButton(UIButton button, Font font);
 int CheckButtonPress(UIButton button, int mx, int my);
-void ButtonPressed(UIButton *button, int mx, int my, void *context);
-void ButtonReleased(UIButton *button, int mx, int my, void *context);
+void ButtonPressed(UIButton *button, int mx, int my);
+void ButtonReleased(UIButton *button, int mx, int my);
 int DefaultButtonCallback();
 
 typedef struct uinumberlabel {
@@ -45,7 +45,7 @@ struct scrollselector { // potential to move this to global later
     int left_pressed; // Release button stuff
     int right_pressed;
 
-    int (*OnChange)(char selection[], void*);
+    int (*OnChange)(char selection[]);
     int num_options;
     char *options[];
 };
@@ -53,8 +53,8 @@ struct scrollselector { // potential to move this to global later
 ScrollSelector* CreateScrollSelector(char label[], char *list_of_options[], int num_options, int x, int y);
 void DrawScrollSelector(ScrollSelector *s, Font font);
 int ScrollSelectorInput(ScrollSelector *s, int mx, int my);
-void ScrollSelectorPressed(ScrollSelector *s, int mx, int my, void *context);
-void ScrollSelectorReleased(ScrollSelector *s, int mx, int my, void *context);
+void ScrollSelectorPressed(ScrollSelector *s, int mx, int my);
+void ScrollSelectorReleased(ScrollSelector *s, int mx, int my);
 void ChangeScrollSelectorOptions(ScrollSelector *s, char *list_of_options[], int num_options);
 void updateScrollSelectorPositions(ScrollSelector *s, Font font);
 
@@ -70,8 +70,8 @@ typedef struct uielement {
 } UIElement;
 
 void DrawUIElement(UIElement element, Font font);
-void CheckUIElementPressed(UIElement element, int mx, int my, void *context);
-void CheckUIElementReleased(UIElement element, int mx, int my, void *context);
+void CheckUIElementPressed(UIElement element, int mx, int my);
+void CheckUIElementReleased(UIElement element, int mx, int my);
 int GetIndexOfKey(UIElement *elements, int elements_len, char *key);
 void UIElementUpdatePosition(UIElement element, int new_x, int new_y);
 UIElement CreateButtonElement(char key[], char label[], int x, int y, int width, int height);
