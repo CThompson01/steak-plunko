@@ -1,5 +1,6 @@
 #ifndef UIELEMENTS_H
 #define UIELEMENTS_H
+#include "raylib.h"
 
 typedef struct uibutton {
     int x;
@@ -12,6 +13,7 @@ typedef struct uibutton {
 } UIButton;
 
 UIButton CreateButton(char label[], int x, int y, int width, int height);
+void initialize_uibutton(UIButton *button, char label[], int x, int y, int width, int height);
 void DrawButton(UIButton button, Font font);
 int CheckButtonPress(UIButton button, int mx, int my);
 void ButtonPressed(UIButton *button, int mx, int my);

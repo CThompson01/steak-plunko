@@ -12,6 +12,18 @@ UIButton CreateButton(char label[], int x, int y, int width, int height) {
     return button;
 }
 
+void initialize_uibutton(UIButton *button, char label[], int x, int y, int width, int height) {
+    *button = (UIButton) {
+        .x = x,
+        .y = y,
+        .width = width,
+        .height = height,
+        .pressed = 0,
+        .callback = &DefaultButtonCallback
+    };
+    strcpy(button->label, label);
+}
+
 void DrawButton(UIButton button, Font font) {
     const int offset = 2;
     if (!button.pressed) {
@@ -37,15 +49,18 @@ int CheckButtonPress(UIButton button, int mx, int my) {
 
 void ButtonPressed(UIButton *button, int mx, int my) {
     if (CheckButtonPress(*button, mx, my)) {
+        printf("%s pressed\n", button->label);
         button->pressed = 1;
     }
 }
 
 void ButtonReleased(UIButton *button, int mx, int my) {
     if (CheckButtonPress(*button, mx, my) && button->pressed) {
+        printf("%s released\n", button->label);
         button->pressed = 0;
         button->callback();
     } else {
+        printf("Releasing %s without press\n", button->label);
         button->pressed = 0;
     }
 }

@@ -4,7 +4,9 @@
 #include <string.h>
 #include "raylib.h"
 #include "../uielements.h"
+#include "../settings.h"
 #include "../global.h"
+#include "../layouts/settingslayout.h"
 
 #define DEFAULT_PEGS 15
 #define PEG_RADIUS 12
@@ -78,6 +80,17 @@ void draw_zone(int location, int animation_offset, int value) {
 	DrawTextEx(font, label, (Vector2) {location+((zone_width-textWidth)/2), (height-23) + animation_offset},
 		21, 0, WHITE);
 }
+
+/***************************
+ * START SETTINGS OVERHAUL *
+ ***************************/
+
+AppliedGameSettings g_appliedGameSettings;
+SettingsLayout g_settingsLayout;
+
+/*************************
+ * END SETTINGS OVERHAUL *
+ *************************/
 
 typedef struct gameSettings {
 	char aspectRatio[50];
@@ -262,6 +275,13 @@ void initialize(GameState *gs) {
 	gs->ui.dropButton.callback = &dropButtonCallback;
 	gs->ui.balanceDisplay = CreateNumberLabel("Balance", &gs->balance, 10, 10, (width/3)-20, 30);
 
+	/*********************
+	 * SETTINGS OVERHAUL *
+	 *********************/
+	initialize_settingslayout(&g_settingsLayout);
+	g_settingsLayout.applyButton.callback = &pauseApplyButtonCallback;
+	g_settingsLayout.closeButton.callback = &pauseCloseButtonCallback;
+	
 	// Pause Modal Buttons
 	unsigned int modal_padding_x = width/8;
 	unsigned int modal_padding_y = height/4;
@@ -316,6 +336,10 @@ void initialize(GameState *gs) {
 }
 
 enum Screen GameScreen(Font defaultFont) {
+	// Test diagnostic info
+	printf("Running test stuff!\n");
+	settingslayout_test();
+
 	// Init game screen
 	enum Screen next_screen = CLOSE_GAME;
 	font = defaultFont;
@@ -478,6 +502,8 @@ enum Screen GameScreen(Font defaultFont) {
 			// Draw apply buttons
 			DrawButton(gameState.ui.applyButton, font);
 			DrawButton(gameState.ui.closeButton, font);
+			DrawButton(g_settingsLayout.applyButton, font);
+			DrawButton(g_settingsLayout.closeButton, font);
 		}
 
 		EndDrawing();
@@ -520,6 +546,8 @@ enum Screen GameScreen(Font defaultFont) {
 				}
 				ButtonPressed(&gameState.ui.applyButton, mouseX, mouseY);
 				ButtonPressed(&gameState.ui.closeButton, mouseX, mouseY);
+				ButtonPressed(&g_settingsLayout.applyButton, mouseX, mouseY);
+				ButtonPressed(&g_settingsLayout.closeButton, mouseX, mouseY);
 			}
 
 			if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) {
@@ -532,6 +560,8 @@ enum Screen GameScreen(Font defaultFont) {
 				}
 				ButtonReleased(&gameState.ui.applyButton, mouseX, mouseY);
 				ButtonReleased(&gameState.ui.closeButton, mouseX, mouseY);
+				ButtonReleased(&g_settingsLayout.applyButton, mouseX, mouseY);
+				ButtonReleased(&g_settingsLayout.closeButton, mouseX, mouseY);
 			}
 		}
 
