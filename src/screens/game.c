@@ -87,6 +87,7 @@ void draw_zone(int location, int animation_offset, int value) {
 
 AppliedGameSettings g_appliedGameSettings;
 SettingsLayout g_settingsLayout;
+ResolutionSettings g_resolutionSettings;
 
 /*************************
  * END SETTINGS OVERHAUL *
@@ -141,6 +142,30 @@ void resetScreenPositions(GameState *gameState) {
 	gameState->ui.balanceDisplay.width = (width/3)-20;
 	gameState->ui.balanceDisplay.height = 30;
 
+	// Resize settings stuff
+	resize_settingslayout(&g_settingsLayout, width, height);
+
+	// Resize video tab
+	for (int i = 0; i < g_settingsLayout.videoTab.num_elements; i++) {
+		if (g_settingsLayout.videoTab.layout[i]->type == UIT_SCROLLSELECTOR) {
+			updateScrollSelectorPositions(g_settingsLayout.videoTab.layout[i]->element.scrollSelector, font);
+		}
+	}
+
+	// Resize audio tab
+	for (int i = 0; i < g_settingsLayout.audioTab.num_elements; i++) {
+		if (g_settingsLayout.audioTab.layout[i]->type == UIT_SCROLLSELECTOR) {
+			updateScrollSelectorPositions(g_settingsLayout.audioTab.layout[i]->element.scrollSelector, font);
+		}
+	}
+
+	// Resize game tab
+	for (int i = 0; i < g_settingsLayout.gameTab.num_elements; i++) {
+		if (g_settingsLayout.gameTab.layout[i]->type == UIT_SCROLLSELECTOR) {
+			updateScrollSelectorPositions(g_settingsLayout.gameTab.layout[i]->element.scrollSelector, font);
+		}
+	}
+
 	/***** Game Objects *****/
 	// Pegs
 	int num_in_row = 1;
@@ -178,21 +203,11 @@ int dropButtonCallback() {
 }
 
 int pauseApplyButtonCallback() {
-	printf("Updating window size.\n");
-	// if (strcmp(g_gameState->settings.resolution, "480x854") == 0) {
-	// 	SetWindowSize(480, 854);
-	// } else if (strcmp(g_gameState->settings.resolution, "854x480") == 0) {
-	// 	SetWindowSize(854, 480);
-	// } else if (strcmp(g_gameState->settings.resolution, "1280x720") == 0) {
-	// 	SetWindowSize(1280, 720);
-	// } else if (strcmp(g_gameState->settings.resolution, "1518x854") == 0) {
-	// 	SetWindowSize(1518, 854);
-	// } else if (strcmp(g_gameState->settings.resolution, "1920x1080") == 0) {
-	// 	SetWindowSize(1920, 1080);
-	// }
-
+	Resolution newResolution = g_appliedGameSettings.videoSettings.selectedResolution;
+	printf("Updating window size to %s. Actual Values: %dx%d\n", newResolution.label,
+		newResolution.width, newResolution.height);
+	SetWindowSize(newResolution.width, newResolution.height);
 	resetScreenPositions(g_gameState);
-
 	return 0;
 }
 
@@ -202,26 +217,29 @@ int pauseCloseButtonCallback() {
 	return 0;
 }
 
-int resolutionOnChange(char *selection) { // TODO FIX
-	printf("Updating the resolution in GameState to %s.\n", selection);
-	// strcpy(g_gameState->settings.resolution, selection);
+int resolutionOnChange(char *selection) {
+	printf("Updating the resolution in g_appliedGameSettings to %s.\n", selection);
+	g_appliedGameSettings.videoSettings.selectedResolution = get_resolution(g_resolutionSettings,
+		g_appliedGameSettings.videoSettings.selectedAspectRatio, selection);
 	return 0;
 }
 
 int aspectOnChange(char *selection) { // TODO FIX
-	// strcpy(g_gameState->settings.aspectRatio, selection);
-	// printf("Selection of aspect ratio changed to %s, updating resolution list.\n", selection);
-	// if (strcmp(selection, "3:4") == 0) {
-	// 	ChangeScrollSelectorOptions(g_gameState->ui.resolutionSelector.element.scrollSelector, 
-	// 		(char*[]) {"480x854"}, 1);
-	// 	resolutionOnChange(g_gameState->ui.resolutionSelector.element.scrollSelector->options[0]);
-	// 	g_gameState->ui.resolutionSelector.element.scrollSelector->button_r_x = -1;
-	// } else if (strcmp(selection, "16:9") == 0) {
-	// 	ChangeScrollSelectorOptions(g_gameState->ui.resolutionSelector.element.scrollSelector, 
-	// 		(char*[]) {"1280x720", "1518x854", "1920x1080"}, 3);
-	// 	resolutionOnChange(g_gameState->ui.resolutionSelector.element.scrollSelector->options[0]);
-	// 	g_gameState->ui.resolutionSelector.element.scrollSelector->button_r_x = -1;
-	// }
+	if (strcmp(selection, "9:16") == 0) {
+		g_appliedGameSettings.videoSettings.selectedAspectRatio = NINE_BY_SIXTEEN;
+		g_appliedGameSettings.videoSettings.selectedResolution = g_resolutionSettings.nineBySixteen[0];
+	} else {
+		g_appliedGameSettings.videoSettings.selectedAspectRatio = SIXTEEN_BY_NINE;
+		g_appliedGameSettings.videoSettings.selectedResolution = g_resolutionSettings.sixteenByNine[0];
+	}
+
+	// Update the resolution selector
+	int t_numLabels = 0;
+	char** t_selectedAspectRatioResolutionLabels = get_resolution_labels(g_resolutionSettings,
+		g_appliedGameSettings.videoSettings.selectedAspectRatio, &t_numLabels);
+	ChangeScrollSelectorOptions(g_settingsLayout.videoTab.resolutionSelector.element.scrollSelector,
+		t_selectedAspectRatioResolutionLabels, t_numLabels);
+
 	return 0;
 }
 
@@ -276,13 +294,14 @@ enum Screen GameScreen(Font defaultFont) {
 	// Test diagnostic info
 	printf("Running test stuff!\n");
 	// settingslayout_test();
+	initialize_appliedgamesettings(&g_appliedGameSettings);
 	initialize_settingslayout(&g_settingsLayout);
-	ResolutionSettings t_resolutionSettings;
-	initialize_resolutionsettings(&t_resolutionSettings);
+	initialize_resolutionsettings(&g_resolutionSettings);
 	int t_numLabels = 0;
-	char** t_sixteenByNineLabels = get_resolution_labels(t_resolutionSettings, SIXTEEN_BY_NINE, &t_numLabels);
+	char** t_selectedAspectRatioResolutionLabels = get_resolution_labels(g_resolutionSettings,
+		g_appliedGameSettings.videoSettings.selectedAspectRatio, &t_numLabels);
 	ChangeScrollSelectorOptions(g_settingsLayout.videoTab.resolutionSelector.element.scrollSelector,
-		t_sixteenByNineLabels, t_numLabels);
+		t_selectedAspectRatioResolutionLabels, t_numLabels);
 
 	// Init game screen
 	enum Screen next_screen = CLOSE_GAME;

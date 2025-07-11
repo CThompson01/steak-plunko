@@ -44,6 +44,6 @@ typedef struct settingslayout {
 
 void settingslayout_test();
 void initialize_settingslayout(SettingsLayout *settingsLayout);
-void resize_settingslayout(SettingsLayout *settingsLayout);
+void resize_settingslayout(SettingsLayout *settingsLayout, int width, int height);
 
 #endif

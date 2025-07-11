@@ -57,14 +57,14 @@ Resolution get_resolution(ResolutionSettings resolutionSettings, enum AspectRati
 	if (aspectRatio == NINE_BY_SIXTEEN) {
 		const int num_resolutions = NINE_BY_SIXTEEN_AMOUNT;
 		for (int i = 0; i < NINE_BY_SIXTEEN_AMOUNT; i++) {
-			if (!strcmp(resolutionSettings.nineBySixteen[i].label, label)) {
+			if (strcmp(resolutionSettings.nineBySixteen[i].label, label) == 0) {
 				return resolutionSettings.nineBySixteen[i];
 			}
 		}
 	} else {
 		const int num_resolutions = SIXTEEN_BY_NINE_AMOUNT;
 		for (int i = 0; i < SIXTEEN_BY_NINE_AMOUNT; i++) {
-			if (!strcmp(resolutionSettings.sixteenByNine[i].label, label)) {
+			if (strcmp(resolutionSettings.sixteenByNine[i].label, label) == 0) {
 				return resolutionSettings.sixteenByNine[i];
 			}
 		}

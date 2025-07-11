@@ -251,6 +251,7 @@ void ChangeScrollSelectorOptions(ScrollSelector *s, char *list_of_options[], int
     s = realloc(s, sizeof(ScrollSelector) + (num_options*sizeof(char*)));
 
     s->num_options = num_options;
+    s->button_r_x = -1;
     s->selected = 0;
 
     for (int i = 0; i < num_options; i++) {

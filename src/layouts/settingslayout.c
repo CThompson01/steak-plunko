@@ -43,7 +43,7 @@ void initialize_settingslayout(SettingsLayout *settingsLayout) {
 		.backdropLayout = (BackdropLayout) {0, 0, 0, 0},
 		.videoTab = (VideoTabLayout) {
 			.aspectSelector = CreateScrollSelectorElement("aspect_selector", "Aspect Ratio",
-				(char*[]) {"16:9", "9:16"}, 2,
+				(char*[]) {"9:16", "16:9"}, 2,
 				-1, -1),
 			.resolutionSelector = CreateScrollSelectorElement("resolution_selector", "Resolution",
 				(char*[]) {"1280x720", "1518x854", "1920x1080"}, 3,
@@ -93,10 +93,10 @@ void initialize_settingslayout(SettingsLayout *settingsLayout) {
 	settingsLayout->gameTab.layout[0] = &settingsLayout->gameTab.gamestyleSelector;
 	settingsLayout->gameTab.layout[1] = &settingsLayout->gameTab.infiniteMoneySelector;
 
-	resize_settingslayout(settingsLayout);
+	resize_settingslayout(settingsLayout, DEFAULT_WIDTH, DEFAULT_HEIGHT);
 }
 
-void resize_settingslayout(SettingsLayout *settingsLayout) {
+void resize_settingslayout(SettingsLayout *settingsLayout, int width, int height) {
 	// Resize video tab
 	VideoTabLayout *videoTab = &settingsLayout->videoTab;
 
@@ -106,12 +106,12 @@ void resize_settingslayout(SettingsLayout *settingsLayout) {
 	int t_numElements = videoTab->num_elements;
 	int t_heightOfTabElementsBlock = (t_padding * (t_numElements+1)) + (t_heightOfSelector * t_numElements);
 	int largestBlock = t_heightOfTabElementsBlock;
-	int t_firstElementOffset_y = (DEFAULT_HEIGHT - t_heightOfTabElementsBlock)/2;
+	int t_firstElementOffset_y = (height - t_heightOfTabElementsBlock)/2;
 	int t_otherElementHeights = 0;
 	ScrollSelector *currElement;
 	for (int i = 0; i < videoTab->num_elements; i++) {
 		currElement = videoTab->layout[i]->element.scrollSelector;
-		currElement->x = DEFAULT_WIDTH/2;
+		currElement->x = width/2;
 		currElement->y = t_firstElementOffset_y + t_otherElementHeights + t_padding;
 		t_otherElementHeights += (t_heightOfSelector + t_padding);
 	}
@@ -120,7 +120,7 @@ void resize_settingslayout(SettingsLayout *settingsLayout) {
 	AudioTabLayout *audioTab = &settingsLayout->audioTab;
 	t_numElements = audioTab->num_elements;
 	t_heightOfTabElementsBlock = (t_padding * (t_numElements+1)) + (t_heightOfSelector * t_numElements);
-	t_firstElementOffset_y = (DEFAULT_HEIGHT - t_heightOfTabElementsBlock)/2;
+	t_firstElementOffset_y = (height - t_heightOfTabElementsBlock)/2;
 	t_otherElementHeights = 0;
 
 	if (t_heightOfTabElementsBlock > largestBlock) {
@@ -129,7 +129,7 @@ void resize_settingslayout(SettingsLayout *settingsLayout) {
 
 	for (int i = 0; i < audioTab->num_elements; i++) {
 		currElement = audioTab->layout[i]->element.scrollSelector;
-		currElement->x = DEFAULT_WIDTH/2;
+		currElement->x = width/2;
 		currElement->y = t_firstElementOffset_y + t_otherElementHeights + t_padding;
 		t_otherElementHeights += (t_heightOfSelector + t_padding);
 	}
@@ -138,7 +138,7 @@ void resize_settingslayout(SettingsLayout *settingsLayout) {
 	GameTabLayout *gameTab = &settingsLayout->gameTab;
 	t_numElements = gameTab->num_elements;
 	t_heightOfTabElementsBlock = (t_padding * (t_numElements+1)) + (t_heightOfSelector * t_numElements);
-	t_firstElementOffset_y = (DEFAULT_HEIGHT - t_heightOfTabElementsBlock)/2;
+	t_firstElementOffset_y = (height - t_heightOfTabElementsBlock)/2;
 	t_otherElementHeights = 0;
 
 	if (t_heightOfTabElementsBlock > largestBlock) {
@@ -147,7 +147,7 @@ void resize_settingslayout(SettingsLayout *settingsLayout) {
 
 	for (int i = 0; i < gameTab->num_elements; i++) {
 		currElement = gameTab->layout[i]->element.scrollSelector;
-		currElement->x = DEFAULT_WIDTH/2;
+		currElement->x = width/2;
 		currElement->y = t_firstElementOffset_y + t_otherElementHeights + t_padding;
 		t_otherElementHeights += (t_heightOfSelector + t_padding);
 	}
@@ -155,6 +155,6 @@ void resize_settingslayout(SettingsLayout *settingsLayout) {
 	// Resize backdrop
 	settingsLayout->backdropLayout.x = 0;
 	settingsLayout->backdropLayout.y = 0;
-	settingsLayout->backdropLayout.width = DEFAULT_WIDTH - 50;
+	settingsLayout->backdropLayout.width = width - 50;
 	settingsLayout->backdropLayout.height = largestBlock;
 }
