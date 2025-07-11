@@ -5,7 +5,7 @@
 void initialize_appliedgamesettings(AppliedGameSettings *gameSettings) {
 	*gameSettings = (AppliedGameSettings) {
 		.videoSettings = (VideoSettings) {
-			.selectedAspectRatio = (Resolution) {"9:16", 9, 16},
+			.selectedAspectRatio = NINE_BY_SIXTEEN,
 			.selectedResolution = (Resolution) {"480x854", 480, 854},
 			.isFullscreen = 0
 		},
@@ -33,11 +33,42 @@ void initialize_resolutionsettings(ResolutionSettings *resolutionSettings) {
 	};
 }
 
-char** get_resolution_labels(ResolutionSettings *resolutionSettings) {
-	char** labels = malloc(4 * sizeof(char*));
-	for (int i = 0; i < 4; i++) {
-		labels[i] = malloc(25 * sizeof(char));
-		strcpy(labels[i], resolutionSettings->sixteenByNine[i].label);
+char** get_resolution_labels(ResolutionSettings resolutionSettings, enum AspectRatio aspectRatio, int *num_labels) {
+	if (aspectRatio == NINE_BY_SIXTEEN) {
+		*num_labels = NINE_BY_SIXTEEN_AMOUNT;
+		char** labels = malloc(NINE_BY_SIXTEEN_AMOUNT * sizeof(char*));
+		for (int i = 0; i < NINE_BY_SIXTEEN_AMOUNT; i++) {
+			labels[i] = malloc(25 * sizeof(char));
+			strcpy(labels[i], resolutionSettings.nineBySixteen[i].label);
+		}
+		return labels;
+	} else {
+		*num_labels = SIXTEEN_BY_NINE_AMOUNT;
+		char** labels = malloc(SIXTEEN_BY_NINE_AMOUNT * sizeof(char*));
+		for (int i = 0; i < SIXTEEN_BY_NINE_AMOUNT; i++) {
+			labels[i] = malloc(25 * sizeof(char));
+			strcpy(labels[i], resolutionSettings.sixteenByNine[i].label);
+		}
+		return labels;
 	}
-	return labels;
+}
+
+Resolution get_resolution(ResolutionSettings resolutionSettings, enum AspectRatio aspectRatio, char *label) {
+	if (aspectRatio == NINE_BY_SIXTEEN) {
+		const int num_resolutions = NINE_BY_SIXTEEN_AMOUNT;
+		for (int i = 0; i < NINE_BY_SIXTEEN_AMOUNT; i++) {
+			if (!strcmp(resolutionSettings.nineBySixteen[i].label, label)) {
+				return resolutionSettings.nineBySixteen[i];
+			}
+		}
+	} else {
+		const int num_resolutions = SIXTEEN_BY_NINE_AMOUNT;
+		for (int i = 0; i < SIXTEEN_BY_NINE_AMOUNT; i++) {
+			if (!strcmp(resolutionSettings.sixteenByNine[i].label, label)) {
+				return resolutionSettings.sixteenByNine[i];
+			}
+		}
+	}
+
+	return resolutionSettings.sixteenByNine[SIXTEEN_BY_NINE_AMOUNT-1];
 }

@@ -49,18 +49,17 @@ int CheckButtonPress(UIButton button, int mx, int my) {
 
 void ButtonPressed(UIButton *button, int mx, int my) {
     if (CheckButtonPress(*button, mx, my)) {
-        printf("%s pressed\n", button->label);
+        printf("[Button Event] %s pressed\n", button->label);
         button->pressed = 1;
     }
 }
 
 void ButtonReleased(UIButton *button, int mx, int my) {
     if (CheckButtonPress(*button, mx, my) && button->pressed) {
-        printf("%s released\n", button->label);
+        printf("[Button Event] %s released\n", button->label);
         button->pressed = 0;
         button->callback();
     } else {
-        printf("Releasing %s without press\n", button->label);
         button->pressed = 0;
     }
 }

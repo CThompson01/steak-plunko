@@ -107,12 +107,6 @@ typedef struct gameobjects {
 typedef struct gameui {
 	UIButton dropButton;
 	UINumberLabel balanceDisplay;
-	UIButton applyButton;
-	UIButton closeButton;
-
-	UIElement aspectSelector;
-	UIElement resolutionSelector;
-	UIElement fullscreenSelector;
 } GameUI;
 
 typedef struct gamestate {
@@ -134,7 +128,6 @@ GameState *g_gameState;
 
 void resetScreenPositions(GameState *gameState) {
 	/***** UI *****/
-
 	// Init UI
 	height = GetScreenHeight();
 	width = GetScreenWidth();
@@ -147,36 +140,6 @@ void resetScreenPositions(GameState *gameState) {
 	gameState->ui.balanceDisplay.y = 10;
 	gameState->ui.balanceDisplay.width = (width/3)-20;
 	gameState->ui.balanceDisplay.height = 30;
-
-	// Pause Modal Buttons
-	unsigned int modal_padding_x = width/8;
-	unsigned int modal_padding_y = height/4;
-	unsigned int modal_width = modal_padding_x * 6;
-	unsigned int modal_height = modal_padding_y * 2;
-
-	int buttonWidth = (modal_width/4)-5;
-	int buttonAreaStart = modal_padding_x + (modal_width/4);
-
-	gameState->ui.applyButton.x = buttonAreaStart; // TODO: consolidate this into one function
-	gameState->ui.applyButton.y = (modal_padding_y + modal_height) - (50 + 10);
-	gameState->ui.applyButton.width = buttonWidth;
-	gameState->ui.applyButton.height = 50;
-
-	gameState->ui.closeButton.x = buttonAreaStart + buttonWidth + 5; // TODO: consolidate this into one function
-	gameState->ui.closeButton.y = (modal_padding_y + modal_height) - (50 + 10);
-	gameState->ui.closeButton.width = buttonWidth;
-	gameState->ui.closeButton.height = 50;
-
-	// Scroll Selectors
-	gameState->ui.aspectSelector.element.scrollSelector->x = width/2;
-	gameState->ui.aspectSelector.element.scrollSelector->y = modal_padding_y + 50;
-	gameState->ui.aspectSelector.element.scrollSelector->button_r_x = -1;
-	gameState->ui.resolutionSelector.element.scrollSelector->x = width/2;
-	gameState->ui.resolutionSelector.element.scrollSelector->y = modal_padding_y + 108;
-	gameState->ui.resolutionSelector.element.scrollSelector->button_r_x = -1;
-	gameState->ui.fullscreenSelector.element.scrollSelector->x = width/2;
-	gameState->ui.fullscreenSelector.element.scrollSelector->y = modal_padding_y + 166;
-	gameState->ui.fullscreenSelector.element.scrollSelector->button_r_x = -1;
 
 	/***** Game Objects *****/
 	// Pegs
@@ -216,17 +179,17 @@ int dropButtonCallback() {
 
 int pauseApplyButtonCallback() {
 	printf("Updating window size.\n");
-	if (strcmp(g_gameState->settings.resolution, "480x854") == 0) {
-		SetWindowSize(480, 854);
-	} else if (strcmp(g_gameState->settings.resolution, "854x480") == 0) {
-		SetWindowSize(854, 480);
-	} else if (strcmp(g_gameState->settings.resolution, "1280x720") == 0) {
-		SetWindowSize(1280, 720);
-	} else if (strcmp(g_gameState->settings.resolution, "1518x854") == 0) {
-		SetWindowSize(1518, 854);
-	} else if (strcmp(g_gameState->settings.resolution, "1920x1080") == 0) {
-		SetWindowSize(1920, 1080);
-	}
+	// if (strcmp(g_gameState->settings.resolution, "480x854") == 0) {
+	// 	SetWindowSize(480, 854);
+	// } else if (strcmp(g_gameState->settings.resolution, "854x480") == 0) {
+	// 	SetWindowSize(854, 480);
+	// } else if (strcmp(g_gameState->settings.resolution, "1280x720") == 0) {
+	// 	SetWindowSize(1280, 720);
+	// } else if (strcmp(g_gameState->settings.resolution, "1518x854") == 0) {
+	// 	SetWindowSize(1518, 854);
+	// } else if (strcmp(g_gameState->settings.resolution, "1920x1080") == 0) {
+	// 	SetWindowSize(1920, 1080);
+	// }
 
 	resetScreenPositions(g_gameState);
 
@@ -239,26 +202,26 @@ int pauseCloseButtonCallback() {
 	return 0;
 }
 
-int resolutionOnChange(char *selection) {
+int resolutionOnChange(char *selection) { // TODO FIX
 	printf("Updating the resolution in GameState to %s.\n", selection);
-	strcpy(g_gameState->settings.resolution, selection);
+	// strcpy(g_gameState->settings.resolution, selection);
 	return 0;
 }
 
-int aspectOnChange(char *selection) {
-	strcpy(g_gameState->settings.aspectRatio, selection);
-	printf("Selection of aspect ratio changed to %s, updating resolution list.\n", selection);
-	if (strcmp(selection, "3:4") == 0) {
-		ChangeScrollSelectorOptions(g_gameState->ui.resolutionSelector.element.scrollSelector, 
-			(char*[]) {"480x854"}, 1);
-		resolutionOnChange(g_gameState->ui.resolutionSelector.element.scrollSelector->options[0]);
-		g_gameState->ui.resolutionSelector.element.scrollSelector->button_r_x = -1;
-	} else if (strcmp(selection, "16:9") == 0) {
-		ChangeScrollSelectorOptions(g_gameState->ui.resolutionSelector.element.scrollSelector, 
-			(char*[]) {"1280x720", "1518x854", "1920x1080"}, 3);
-		resolutionOnChange(g_gameState->ui.resolutionSelector.element.scrollSelector->options[0]);
-		g_gameState->ui.resolutionSelector.element.scrollSelector->button_r_x = -1;
-	}
+int aspectOnChange(char *selection) { // TODO FIX
+	// strcpy(g_gameState->settings.aspectRatio, selection);
+	// printf("Selection of aspect ratio changed to %s, updating resolution list.\n", selection);
+	// if (strcmp(selection, "3:4") == 0) {
+	// 	ChangeScrollSelectorOptions(g_gameState->ui.resolutionSelector.element.scrollSelector, 
+	// 		(char*[]) {"480x854"}, 1);
+	// 	resolutionOnChange(g_gameState->ui.resolutionSelector.element.scrollSelector->options[0]);
+	// 	g_gameState->ui.resolutionSelector.element.scrollSelector->button_r_x = -1;
+	// } else if (strcmp(selection, "16:9") == 0) {
+	// 	ChangeScrollSelectorOptions(g_gameState->ui.resolutionSelector.element.scrollSelector, 
+	// 		(char*[]) {"1280x720", "1518x854", "1920x1080"}, 3);
+	// 	resolutionOnChange(g_gameState->ui.resolutionSelector.element.scrollSelector->options[0]);
+	// 	g_gameState->ui.resolutionSelector.element.scrollSelector->button_r_x = -1;
+	// }
 	return 0;
 }
 
@@ -278,36 +241,10 @@ void initialize(GameState *gs) {
 	/*********************
 	 * SETTINGS OVERHAUL *
 	 *********************/
-	initialize_settingslayout(&g_settingsLayout);
+	g_settingsLayout.videoTab.aspectSelector.element.scrollSelector->OnChange = &aspectOnChange;
+	g_settingsLayout.videoTab.resolutionSelector.element.scrollSelector->OnChange = &resolutionOnChange;
 	g_settingsLayout.applyButton.callback = &pauseApplyButtonCallback;
 	g_settingsLayout.closeButton.callback = &pauseCloseButtonCallback;
-	
-	// Pause Modal Buttons
-	unsigned int modal_padding_x = width/8;
-	unsigned int modal_padding_y = height/4;
-	unsigned int modal_width = modal_padding_x * 6;
-	unsigned int modal_height = modal_padding_y * 2;
-
-	int buttonWidth = (modal_width/4)-5;
-	int buttonAreaStart = modal_padding_x + (modal_width/4);
-	gs->ui.applyButton = CreateButton("Apply",
-		buttonAreaStart, (modal_padding_y + modal_height) - (50 + 10),
-		buttonWidth, 50);
-	gs->ui.closeButton = CreateButton("Close",
-		buttonAreaStart + buttonWidth + 5, (modal_padding_y + modal_height) - (50 + 10),
-		buttonWidth, 50);
-	gs->ui.applyButton.callback = &pauseApplyButtonCallback;
-	gs->ui.closeButton.callback = &pauseCloseButtonCallback;
-
-	// Settings scroll selectors
-	gs->ui.aspectSelector = CreateScrollSelectorElement("aspect_selector", "Aspect Ratio",
-			(char*[]) {"16:9", "3:4"}, 2, width/2, modal_padding_y + 50);
-	gs->ui.aspectSelector.element.scrollSelector->OnChange = &aspectOnChange;
-	gs->ui.resolutionSelector = CreateScrollSelectorElement("resolution_selector", "Resolution",
-			(char*[]) {"1280x720", "1518x854", "1920x1080"}, 3, width/2, modal_padding_y + 108);
-	gs->ui.resolutionSelector.element.scrollSelector->OnChange = &resolutionOnChange;
-	gs->ui.fullscreenSelector = CreateScrollSelectorElement("fullscreen_selector", "Fullscreen",
-			(char*[]) {"no", "yes"}, 2, width/2, modal_padding_y + 166);
 
 	/***** Game Objects *****/
 	// Pegs
@@ -338,7 +275,14 @@ void initialize(GameState *gs) {
 enum Screen GameScreen(Font defaultFont) {
 	// Test diagnostic info
 	printf("Running test stuff!\n");
-	settingslayout_test();
+	// settingslayout_test();
+	initialize_settingslayout(&g_settingsLayout);
+	ResolutionSettings t_resolutionSettings;
+	initialize_resolutionsettings(&t_resolutionSettings);
+	int t_numLabels = 0;
+	char** t_sixteenByNineLabels = get_resolution_labels(t_resolutionSettings, SIXTEEN_BY_NINE, &t_numLabels);
+	ChangeScrollSelectorOptions(g_settingsLayout.videoTab.resolutionSelector.element.scrollSelector,
+		t_sixteenByNineLabels, t_numLabels);
 
 	// Init game screen
 	enum Screen next_screen = CLOSE_GAME;
@@ -349,16 +293,6 @@ enum Screen GameScreen(Font defaultFont) {
 	GameState gameState = {0};
 	g_gameState = &gameState;
 	initialize(&gameState);
-
-	// Group common elements
-	unsigned int modal_padding_x = GetScreenWidth()/8;
-	unsigned int modal_padding_y = GetScreenHeight()/4;
-	int numModalElements = 3;
-	UIElement *modalElements[] = {
-		&gameState.ui.aspectSelector,
-		&gameState.ui.resolutionSelector,
-		&gameState.ui.fullscreenSelector
-	};
 
 	// Generate balls
 	PBall *balls_head = (PBall*) malloc(sizeof(PBall)); // fix this later
@@ -487,23 +421,35 @@ enum Screen GameScreen(Font defaultFont) {
 		// Draw Pause Menu
 		if (gameState.paused) {
 			// Draw back drop
-			DrawRectangle(modal_padding_x, modal_padding_y+2,
-				width-(modal_padding_x*2), height-(modal_padding_y*2),
+			DrawRectangle((width-g_settingsLayout.backdropLayout.width)/2,
+				((height-g_settingsLayout.backdropLayout.height)/2) + 2,
+				g_settingsLayout.backdropLayout.width, g_settingsLayout.backdropLayout.height,
 				BLACK);
-			DrawRectangle(modal_padding_x, modal_padding_y,
-				width-(modal_padding_x*2), height-(modal_padding_y*2),
+			DrawRectangle((width-g_settingsLayout.backdropLayout.width)/2,
+				(height-g_settingsLayout.backdropLayout.height)/2,
+				g_settingsLayout.backdropLayout.width, g_settingsLayout.backdropLayout.height,
 				BLUE);
 
-			// Draw aspect buttons
-			for (int modal_i = 0; modal_i < numModalElements; modal_i++) {
-				DrawUIElement(*modalElements[modal_i], font);
-			}
-
-			// Draw apply buttons
-			DrawButton(gameState.ui.applyButton, font);
-			DrawButton(gameState.ui.closeButton, font);
+			// Settings Overhaul Stuff
 			DrawButton(g_settingsLayout.applyButton, font);
 			DrawButton(g_settingsLayout.closeButton, font);
+
+			if (g_settingsLayout.activeTab == 0) { // Video
+				VideoTabLayout *t_videoTab = &g_settingsLayout.videoTab;
+				for (int i = 0; i < t_videoTab->num_elements; i++) {
+					DrawUIElement(*t_videoTab->layout[i], font);
+				}
+			} else if (g_settingsLayout.activeTab == 1) { // Audio
+				AudioTabLayout *t_audioTab = &g_settingsLayout.audioTab;
+				for (int i = 0; i < t_audioTab->num_elements; i++) {
+					DrawUIElement(*t_audioTab->layout[i], font);
+				}
+			} else { // Game
+				GameTabLayout *t_gameTab = &g_settingsLayout.gameTab;
+				for (int i = 0; i < t_gameTab->num_elements; i++) {
+					DrawUIElement(*t_gameTab->layout[i], font);
+				}
+			}
 		}
 
 		EndDrawing();
@@ -518,7 +464,7 @@ enum Screen GameScreen(Font defaultFont) {
 			if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
 				int mouseX = GetMouseX();
 				int mouseY = GetMouseY();
-				printf("Mouse Pressed at (%d, %d)\n", mouseX, mouseY);
+				printf("[Mouse Event] Mouse Pressed at (%d, %d)\n", mouseX, mouseY);
 
 				ButtonPressed(&gameState.ui.dropButton, mouseX, mouseY);
 			}
@@ -526,7 +472,7 @@ enum Screen GameScreen(Font defaultFont) {
 			if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) {
 				int mouseX = GetMouseX();
 				int mouseY = GetMouseY();
-				printf("Mouse Released at (%d, %d)\n", mouseX, mouseY);
+				printf("[Mouse Event] Mouse Released at (%d, %d)\n", mouseX, mouseY);
 
 				ButtonReleased(&gameState.ui.dropButton, mouseX, mouseY);
 			}
@@ -536,16 +482,36 @@ enum Screen GameScreen(Font defaultFont) {
 				continue;
 			}
 
+			if (IsKeyPressed(KEY_E)) {
+				g_settingsLayout.activeTab += 1;
+			}
+
+			if (IsKeyPressed(KEY_Q)) {
+				g_settingsLayout.activeTab -= 1;
+			}
+
 			if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
 				int mouseX = GetMouseX();
 				int mouseY = GetMouseY();
-				printf("Mouse Pressed at (%d, %d)\n", mouseX, mouseY);
+				printf("[Mouse Event] Mouse Pressed at (%d, %d)\n", mouseX, mouseY);
 
-				for (int modal_i = 0; modal_i < numModalElements; modal_i++) {
-					CheckUIElementPressed(*modalElements[modal_i], mouseX, mouseY);
+				if (g_settingsLayout.activeTab == 0) { // Video
+					VideoTabLayout *t_videoTab = &g_settingsLayout.videoTab;
+					for (int i = 0; i < t_videoTab->num_elements; i++) {
+						CheckUIElementPressed(*t_videoTab->layout[i], mouseX, mouseY);
+					}
+				} else if (g_settingsLayout.activeTab == 1) { // Audio
+					AudioTabLayout *t_audioTab = &g_settingsLayout.audioTab;
+					for (int i = 0; i < t_audioTab->num_elements; i++) {
+						CheckUIElementPressed(*t_audioTab->layout[i], mouseX, mouseY);
+					}
+				} else { // Game
+					GameTabLayout *t_gameTab = &g_settingsLayout.gameTab;
+					for (int i = 0; i < t_gameTab->num_elements; i++) {
+						CheckUIElementPressed(*t_gameTab->layout[i], mouseX, mouseY);
+					}
 				}
-				ButtonPressed(&gameState.ui.applyButton, mouseX, mouseY);
-				ButtonPressed(&gameState.ui.closeButton, mouseX, mouseY);
+
 				ButtonPressed(&g_settingsLayout.applyButton, mouseX, mouseY);
 				ButtonPressed(&g_settingsLayout.closeButton, mouseX, mouseY);
 			}
@@ -553,13 +519,25 @@ enum Screen GameScreen(Font defaultFont) {
 			if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) {
 				int mouseX = GetMouseX();
 				int mouseY = GetMouseY();
-				printf("Mouse Released at (%d, %d)\n", mouseX, mouseY);
+				printf("[Mouse Event] Mouse Released at (%d, %d)\n", mouseX, mouseY);
 
-				for (int modal_i = 0; modal_i < numModalElements; modal_i++) {
-					CheckUIElementReleased(*modalElements[modal_i], mouseX, mouseY);
+				if (g_settingsLayout.activeTab == 0) { // Video
+					VideoTabLayout *t_videoTab = &g_settingsLayout.videoTab;
+					for (int i = 0; i < t_videoTab->num_elements; i++) {
+						CheckUIElementReleased(*t_videoTab->layout[i], mouseX, mouseY);
+					}
+				} else if (g_settingsLayout.activeTab == 1) { // Audio
+					AudioTabLayout *t_audioTab = &g_settingsLayout.audioTab;
+					for (int i = 0; i < t_audioTab->num_elements; i++) {
+						CheckUIElementReleased(*t_audioTab->layout[i], mouseX, mouseY);
+					}
+				} else { // Game
+					GameTabLayout *t_gameTab = &g_settingsLayout.gameTab;
+					for (int i = 0; i < t_gameTab->num_elements; i++) {
+						CheckUIElementReleased(*t_gameTab->layout[i], mouseX, mouseY);
+					}
 				}
-				ButtonReleased(&gameState.ui.applyButton, mouseX, mouseY);
-				ButtonReleased(&gameState.ui.closeButton, mouseX, mouseY);
+
 				ButtonReleased(&g_settingsLayout.applyButton, mouseX, mouseY);
 				ButtonReleased(&g_settingsLayout.closeButton, mouseX, mouseY);
 			}
