@@ -12,21 +12,31 @@ Building is a little different depending on your OS. Find your OS below, and fol
 
 Currently, automated setup will only work on Ubuntu. 
 
-Open terminal and run the following command.
+Open terminal and run the following commands.
 
 ```
-./setup
+chmod +x setup.sh
+./setup.sh
 ```
 
-This should automatically install all of the required dependencies.
+This should allow `setup.sh` to be executable, then automatically install all of the required dependencies.
 
-After the setup is finished running, you should be able to build the project using make. If you've never used make, simply navigate to your terminal and run the following command.
+After the setup is finished running, you should be able to build the project using make. If you've never used make, simply navigate to the `steak-plunko/` directory in your terminal and run the following command.
 
 ```
 make
 ```
 
-The finished build can be found within the build/ directory. To run the program, you can execute the application from the command line with ./plinko when in the build directory. You may need to mess with permissions in order to allow it to be executed using chmod. The following command should work.
+If you only want to build for a specific operating system, the following commands do so for the specified OS.
+
+```
+make ubuntu
+make windows
+```
+
+Once the build is finished, you must copy the `resources/` folder into the `build/` directory.
+
+The finished build can be found within the `build/` directory. To run the program, you can execute the application from the command line with `./plinko` when in the build directory. You may need to mess with permissions in order to allow it to be executed using chmod. The following command should work when run within the build directory.
 
 ```
 chmod +x plinko
