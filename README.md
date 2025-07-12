@@ -34,7 +34,7 @@ make ubuntu
 make windows
 ```
 
-Once the build is finished, you must copy the `resources/` folder into the `build/` directory.
+Once the build is finished, you must copy the `resources/` folder found in the `src/` directory into the `build/` directory.
 
 The finished build can be found within the `build/` directory. To run the program, you can execute the application from the command line with `./plinko` when in the build directory. You may need to mess with permissions in order to allow it to be executed using chmod. The following command should work when run within the build directory.
 
