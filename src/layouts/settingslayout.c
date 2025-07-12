@@ -97,59 +97,25 @@ void initialize_settingslayout(SettingsLayout *settingsLayout) {
 }
 
 void resize_settingslayout(SettingsLayout *settingsLayout, int width, int height) {
-	// Resize video tab
 	VideoTabLayout *videoTab = &settingsLayout->videoTab;
-
-	// Calculate the height of the tab elements to determine how far the screen offsets should be
-	const int t_padding = 25;
-	const int t_heightOfSelector = 58;
-	int t_numElements = videoTab->num_elements;
-	int t_heightOfTabElementsBlock = (t_padding * (t_numElements+1)) + (t_heightOfSelector * t_numElements);
-	int largestBlock = t_heightOfTabElementsBlock;
-	int t_firstElementOffset_y = (height - t_heightOfTabElementsBlock)/2;
-	int t_otherElementHeights = 0;
-	ScrollSelector *currElement;
-	for (int i = 0; i < videoTab->num_elements; i++) {
-		currElement = videoTab->layout[i]->element.scrollSelector;
-		currElement->x = width/2;
-		currElement->y = t_firstElementOffset_y + t_otherElementHeights + t_padding;
-		t_otherElementHeights += (t_heightOfSelector + t_padding);
-	}
-
-	// Resize audio tab
 	AudioTabLayout *audioTab = &settingsLayout->audioTab;
-	t_numElements = audioTab->num_elements;
-	t_heightOfTabElementsBlock = (t_padding * (t_numElements+1)) + (t_heightOfSelector * t_numElements);
-	t_firstElementOffset_y = (height - t_heightOfTabElementsBlock)/2;
-	t_otherElementHeights = 0;
-
-	if (t_heightOfTabElementsBlock > largestBlock) {
-		largestBlock = t_heightOfTabElementsBlock;
-	}
-
-	for (int i = 0; i < audioTab->num_elements; i++) {
-		currElement = audioTab->layout[i]->element.scrollSelector;
-		currElement->x = width/2;
-		currElement->y = t_firstElementOffset_y + t_otherElementHeights + t_padding;
-		t_otherElementHeights += (t_heightOfSelector + t_padding);
-	}
-
-	// Resize game tab
 	GameTabLayout *gameTab = &settingsLayout->gameTab;
-	t_numElements = gameTab->num_elements;
-	t_heightOfTabElementsBlock = (t_padding * (t_numElements+1)) + (t_heightOfSelector * t_numElements);
-	t_firstElementOffset_y = (height - t_heightOfTabElementsBlock)/2;
-	t_otherElementHeights = 0;
 
+	// Resize Video Tab
+	const int t_padding = 25;
+	int t_heightOfTabElementsBlock = AutoLayout_Centered(videoTab->layout, videoTab->num_elements, width, height, t_padding);
+	int largestBlock = t_heightOfTabElementsBlock;
+
+	// Resize Audio Tab
+	t_heightOfTabElementsBlock = AutoLayout_Centered(audioTab->layout, audioTab->num_elements, width, height, t_padding);
 	if (t_heightOfTabElementsBlock > largestBlock) {
 		largestBlock = t_heightOfTabElementsBlock;
 	}
 
-	for (int i = 0; i < gameTab->num_elements; i++) {
-		currElement = gameTab->layout[i]->element.scrollSelector;
-		currElement->x = width/2;
-		currElement->y = t_firstElementOffset_y + t_otherElementHeights + t_padding;
-		t_otherElementHeights += (t_heightOfSelector + t_padding);
+	// Resize Game Tab
+	t_heightOfTabElementsBlock = AutoLayout_Centered(gameTab->layout, gameTab->num_elements, width, height, t_padding);
+	if (t_heightOfTabElementsBlock > largestBlock) {
+		largestBlock = t_heightOfTabElementsBlock;
 	}
 
 	// Resize backdrop

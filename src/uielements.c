@@ -379,3 +379,54 @@ UIElement CreateScrollSelectorElement(char key[], char label[], char *list_of_op
     element.element.scrollSelector = scrollSelector;
     return element;
 }
+
+
+/***************
+ * Layout Code *
+ ***************/
+
+int AutoLayout_Centered(UIElement **layout, int numElements, int width, int height, int padding) {
+    const int t_heightOfSelector = 58;
+    int t_heightOfTabElementsBlock = (padding * (numElements+1)) + (t_heightOfSelector * numElements);
+    int t_firstElementOffset_y = (height - t_heightOfTabElementsBlock)/2;
+    int t_otherElementHeights = 0;
+
+    for (int i = 0; i < numElements; i++) {
+        switch (layout[i]->type) {
+            case UIT_SCROLLSELECTOR:
+                layout[i]->element.scrollSelector->x = width/2;
+                layout[i]->element.scrollSelector->y = t_firstElementOffset_y + t_otherElementHeights + padding;
+                t_otherElementHeights += (t_heightOfSelector + padding);
+                break;
+            case UIT_BUTTON:
+            case UIT_NUMLABEL:
+            default:
+                break;
+        }
+    }
+
+    return t_heightOfTabElementsBlock;
+}
+
+int AutoLayout_SpaceBetween(UIElement **layout, int numElements, int width, int height) {
+    // For now assume all elements are the same height, TODO: don't do this later
+    const int t_heightOfSelector = 58;
+    int t_padding = (height - (numElements*t_heightOfSelector))/(numElements+1);
+    int t_otherElementHeights = 0;
+
+    for (int i = 0; i < numElements; i++) {
+        switch (layout[i]->type) {
+            case UIT_SCROLLSELECTOR:
+                layout[i]->element.scrollSelector->x = width/2;
+                layout[i]->element.scrollSelector->y = t_otherElementHeights + t_padding;
+                t_otherElementHeights += (t_heightOfSelector + t_padding);
+                break;
+            case UIT_BUTTON:
+            case UIT_NUMLABEL:
+            default:
+                break;
+        }
+    }
+
+    return -1;
+}

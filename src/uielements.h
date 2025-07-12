@@ -2,6 +2,10 @@
 #define UIELEMENTS_H
 #include "raylib.h"
 
+/*******************
+ * UI Element Code *
+ *******************/
+
 typedef struct uibutton {
     int x;
     int y;
@@ -79,5 +83,12 @@ void UIElementUpdatePosition(UIElement element, int new_x, int new_y);
 UIElement CreateButtonElement(char key[], char label[], int x, int y, int width, int height);
 UIElement CreateNumberLabelElement(char key[], char label[], int *value, int x, int y, int width, int height);
 UIElement CreateScrollSelectorElement(char key[], char label[], char *list_of_options[], int num_options, int x, int y);
+
+/***************
+ * Layout Code *
+ ***************/
+
+int AutoLayout_Centered(UIElement **layout, int numElements, int width, int height, int padding);
+int AutoLayout_SpaceBetween(UIElement **layout, int numElements, int width, int height);
 
 #endif
